@@ -1,0 +1,166 @@
+<?php
+
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\DepartamentoController;
+use App\Http\Controllers\AlunoController;
+use App\Http\Controllers\ProfessorController;
+use App\Http\Controllers\TurmaController;
+use App\Http\Controllers\EncarregadoController;
+use App\Http\Controllers\EncarregadoAvisoController;
+use App\Http\Controllers\AvisoController;
+use App\Http\Controllers\PaginaController;
+use App\Http\Controllers\AlunoAreaController;
+use App\Http\Controllers\HorarioController;
+use App\Http\Controllers\ProfessorAreaController;
+
+// Redirecionamento da raiz para login
+Route::get('/', function () {
+    return redirect('/login');
+});
+
+// Rotas de autenticação
+Route::middleware('guest')->group(function () {
+    Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
+    Route::post('/login', [AuthController::class, 'login']);
+});
+
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+// Marcar aviso como lido (sino de notificações - qualquer utilizador)
+Route::post('/avisos/{aviso}/lido', [AvisoController::class, 'marcarLido'])->name('avisos.lido');
+
+// Histórico de avisos (qualquer utilizador autenticado)
+Route::get('/avisos', [AvisoController::class, 'historico'])->name('avisos.historico');
+
+// Rotas protegidas
+Route::middleware('auth')->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    // Páginas informativas (Horário, Atividades, Sobre a Escola) - todos visualizam
+    Route::get('/paginas/horario', [PaginaController::class, 'horario'])->name('paginas.horario');
+    Route::get('/paginas/atividades', [PaginaController::class, 'atividades'])->name('paginas.atividades');
+    Route::get('/paginas/sobre', [PaginaController::class, 'sobre'])->name('paginas.sobre');
+
+    // Rotas Admin (escrita/gestão completa) - apenas admin
+    Route::middleware('can:admin')->prefix('admin')->name('admin.')->group(function () {
+        Route::resource('users', UserController::class)->except(['show']);
+        Route::get('users/{user}', [UserController::class, 'show'])->name('users.show');
+        Route::patch('users/{user}/toggle-status', [UserController::class, 'toggleStatus'])->name('users.toggle-status');
+
+        Route::get('alunos/create', [AlunoController::class, 'create'])->name('alunos.create');
+        Route::post('alunos', [AlunoController::class, 'store'])->name('alunos.store');
+        Route::get('alunos/{aluno}/edit', [AlunoController::class, 'edit'])->name('alunos.edit');
+        Route::put('alunos/{aluno}', [AlunoController::class, 'update'])->name('alunos.update');
+        Route::delete('alunos/{aluno}', [AlunoController::class, 'destroy'])->name('alunos.destroy');
+        Route::patch('alunos/{aluno}/toggle-status', [AlunoController::class, 'toggleStatus'])->name('alunos.toggle-status');
+
+        Route::get('professores/create', [ProfessorController::class, 'create'])->name('professores.create');
+        Route::post('professores', [ProfessorController::class, 'store'])->name('professores.store');
+        Route::get('professores/{professor}/edit', [ProfessorController::class, 'edit'])->name('professores.edit');
+        Route::put('professores/{professor}', [ProfessorController::class, 'update'])->name('professores.update');
+        Route::delete('professores/{professor}', [ProfessorController::class, 'destroy'])->name('professores.destroy');
+        Route::patch('professores/{professor}/toggle-status', [ProfessorController::class, 'toggleStatus'])->name('professores.toggle-status');
+
+        Route::get('turmas/create', [TurmaController::class, 'create'])->name('turmas.create');
+        Route::post('turmas', [TurmaController::class, 'store'])->name('turmas.store');
+        Route::get('turmas/{turma}/edit', [TurmaController::class, 'edit'])->name('turmas.edit');
+        Route::put('turmas/{turma}', [TurmaController::class, 'update'])->name('turmas.update');
+        Route::delete('turmas/{turma}', [TurmaController::class, 'destroy'])->name('turmas.destroy');
+
+        Route::get('departamentos/create', [DepartamentoController::class, 'create'])->name('departamentos.create');
+        Route::post('departamentos', [DepartamentoController::class, 'store'])->name('departamentos.store');
+        Route::get('departamentos/{departamento}/edit', [DepartamentoController::class, 'edit'])->name('departamentos.edit');
+        Route::put('departamentos/{departamento}', [DepartamentoController::class, 'update'])->name('departamentos.update');
+        Route::delete('departamentos/{departamento}', [DepartamentoController::class, 'destroy'])->name('departamentos.destroy');
+        Route::post('departamentos/{departamento}/membros', [DepartamentoController::class, 'adicionarMembro'])->name('departamentos.membros.adicionar');
+        Route::put('departamentos/{departamento}/membros/{user}', [DepartamentoController::class, 'atualizarMembro'])->name('departamentos.membros.atualizar');
+        Route::delete('departamentos/{departamento}/membros/{user}', [DepartamentoController::class, 'removerMembro'])->name('departamentos.membros.remover');
+
+        Route::get('encarregados/create', [EncarregadoController::class, 'create'])->name('encarregados.create');
+        Route::post('encarregados', [EncarregadoController::class, 'store'])->name('encarregados.store');
+        Route::get('encarregados/{encarregado}/edit', [EncarregadoController::class, 'edit'])->name('encarregados.edit');
+        Route::put('encarregados/{encarregado}', [EncarregadoController::class, 'update'])->name('encarregados.update');
+        Route::delete('encarregados/{encarregado}', [EncarregadoController::class, 'destroy'])->name('encarregados.destroy');
+        Route::post('encarregados/{encarregado}/associar-aluno', [EncarregadoController::class, 'associarAluno'])->name('encarregados.associar-aluno');
+        Route::delete('encarregados/{encarregado}/associar-aluno/{aluno}', [EncarregadoController::class, 'desassociarAluno'])->name('encarregados.desassociar-aluno');
+
+        Route::get('paginas', [PaginaController::class, 'index'])->name('paginas.index');
+        Route::get('paginas/create', [PaginaController::class, 'create'])->name('paginas.create');
+        Route::post('paginas', [PaginaController::class, 'store'])->name('paginas.store');
+        Route::get('paginas/{pagina}/edit', [PaginaController::class, 'edit'])->name('paginas.edit');
+        Route::put('paginas/{pagina}', [PaginaController::class, 'update'])->name('paginas.update');
+        Route::delete('paginas/{pagina}', [PaginaController::class, 'destroy'])->name('paginas.destroy');
+
+        // Gestão de Horários - admin
+        Route::get('horarios', [HorarioController::class, 'index'])->name('horarios.index');
+        Route::get('horarios/turma/{turma}', [HorarioController::class, 'turma'])->name('horarios.turma');
+        Route::post('horarios/turma/{turma}', [HorarioController::class, 'turmaStore'])->name('horarios.turma.store');
+        Route::get('horarios/professor/{professor}', [HorarioController::class, 'professor'])->name('horarios.professor');
+        Route::post('horarios/professor/{professor}', [HorarioController::class, 'professorStore'])->name('horarios.professor.store');
+        Route::delete('horarios/{horario}', [HorarioController::class, 'destroy'])->name('horarios.destroy');
+    });
+
+    // Rotas de consulta (admin, diretor, financeiro, auxiliar) - apenas leitura
+    Route::middleware('can:consultar')->prefix('admin')->name('admin.')->group(function () {
+        Route::get('alunos', [AlunoController::class, 'index'])->name('alunos.index');
+        Route::get('alunos/{aluno}', [AlunoController::class, 'show'])->name('alunos.show');
+
+        Route::get('professores', [ProfessorController::class, 'index'])->name('professores.index');
+        Route::get('professores/{professor}', [ProfessorController::class, 'show'])->name('professores.show');
+
+        Route::get('turmas', [TurmaController::class, 'index'])->name('turmas.index');
+        Route::get('turmas/{turma}', [TurmaController::class, 'show'])->name('turmas.show');
+
+        Route::get('departamentos', [DepartamentoController::class, 'index'])->name('departamentos.index');
+        Route::get('departamentos/{departamento}', [DepartamentoController::class, 'show'])->name('departamentos.show');
+        Route::get('departamentos/{departamento}/membros', [DepartamentoController::class, 'gerirMembros'])->name('departamentos.membros');
+
+        Route::get('encarregados', [EncarregadoController::class, 'index'])->name('encarregados.index');
+        Route::get('encarregados/{encarregado}', [EncarregadoController::class, 'show'])->name('encarregados.show');
+    });
+
+    // Rotas Diretor
+    Route::middleware('can:diretor')->prefix('diretor')->name('diretor.')->group(function () {
+        // Adicionar rotas de diretoria aqui
+    });
+    
+    // Rotas Financeiro
+    Route::middleware('can:financeiro')->prefix('financeiro')->name('financeiro.')->group(function () {
+        // Adicionar rotas financeiras aqui
+    });
+    
+    // Rotas Professor
+    Route::middleware('can:professor')->prefix('professor')->name('professor.')->group(function () {
+        Route::get('meu-horario', [ProfessorAreaController::class, 'meuHorario'])->name('meu-horario');
+        Route::get('minhas-turmas', [ProfessorAreaController::class, 'minhasTurmas'])->name('minhas-turmas');
+    });
+    
+    // Rotas Aluno
+    Route::middleware('can:aluno')->prefix('aluno')->name('aluno.')->group(function () {
+        Route::get('minhas-notas', [AlunoAreaController::class, 'notas'])->name('minhas.notas');
+        Route::get('meu-horario', [AlunoAreaController::class, 'horario'])->name('minhas.horario');
+        Route::get('meus-pagamentos', [AlunoAreaController::class, 'pagamentos'])->name('minhas.pagamentos');
+        Route::get('minhas-presencas', [AlunoAreaController::class, 'presencas'])->name('minhas.presencas');
+    });
+
+    // Rotas Encarregado de Educação
+    Route::middleware('can:encarregado')->prefix('encarregado')->name('encarregado.')->group(function () {
+        Route::post('avisos/{aviso}/lido', [EncarregadoAvisoController::class, 'marcarLido'])->name('avisos.lido');
+        Route::get('filhos/{aluno}/notas', [EncarregadoController::class, 'filhoNotas'])->name('filhos.notas');
+        Route::get('filhos/{aluno}/horario', [EncarregadoController::class, 'filhoHorario'])->name('filhos.horario');
+        Route::get('filhos/{aluno}/pagamentos', [EncarregadoController::class, 'filhoPagamentos'])->name('filhos.pagamentos');
+        Route::get('filhos/{aluno}/presencas', [EncarregadoController::class, 'filhoPresencas'])->name('filhos.presencas');
+    });
+
+    // Rotas de avisos (admin e diretor/PCTP podem publicar)
+    Route::middleware('can:gerir_avisos')->prefix('admin')->name('admin.')->group(function () {
+        Route::get('avisos', [AvisoController::class, 'index'])->name('avisos.index');
+        Route::get('avisos/create', [AvisoController::class, 'create'])->name('avisos.create');
+        Route::post('avisos', [AvisoController::class, 'store'])->name('avisos.store');
+        Route::delete('avisos/{aviso}', [AvisoController::class, 'destroy'])->name('avisos.destroy');
+    });
+});
+
