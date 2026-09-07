@@ -62,6 +62,7 @@
     .tag-auxiliar { background: rgba(14, 165, 233, 0.12); color: #38BDF8; }
     .tag-pctp { background: rgba(236, 72, 153, 0.12); color: #F9A8D4; }
     .tag-encarregado { background: rgba(45, 212, 191, 0.12); color: #2DD4BF; }
+    .tag-funcionario { background: rgba(168, 162, 158, 0.12); color: #A8A29E; }
     .tag-ativo { background: rgba(34, 197, 94, 0.12); color: var(--accent-green); }
     .tag-inativo { background: rgba(239, 68, 68, 0.12); color: #FCA5A5; }
 

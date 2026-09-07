@@ -250,6 +250,11 @@
         color: #2DD4BF;
     }
 
+    .tag-funcionario {
+        background: rgba(168, 162, 158, 0.12);
+        color: #A8A29E;
+    }
+
     .tag-ativo {
         background: rgba(34, 197, 94, 0.12);
         color: var(--accent-green);
@@ -457,6 +462,7 @@
             <option value="auxiliar" {{ request('role') === 'auxiliar' ? 'selected' : '' }}>Auxiliar</option>
             <option value="pctp" {{ request('role') === 'pctp' ? 'selected' : '' }}>PCTP</option>
             <option value="encarregado" {{ request('role') === 'encarregado' ? 'selected' : '' }}>Encarregado</option>
+            <option value="funcionario" {{ request('role') === 'funcionario' ? 'selected' : '' }}>Funcionário</option>
         </select>
         <select name="status" class="filter-select">
             <option value="">Todos os status</option>

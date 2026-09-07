@@ -22,36 +22,88 @@
     .empty-state{text-align:center;padding:48px 20px;color:var(--text-secondary);font-size:12px}
     .progress{height:6px;background:var(--bg-hover);border-radius:3px;overflow:hidden;margin-top:8px}
     .progress-bar{height:100%;border-radius:3px;background:var(--accent-green)}
+    .pr-select{background:var(--bg-card);border:1px solid var(--border-color);color:var(--text-primary);border-radius:8px;padding:7px 10px;font-size:12px;cursor:pointer;outline:none}
+    .pr-select:focus{border-color:var(--accent-green)}
+    .pr-mes-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px}
+    .pr-mes-card{background:var(--bg-card);border:1px solid var(--border-color);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .pr-mes-card.destaque{border-color:var(--accent-green);box-shadow:0 0 0 1px rgba(34,197,94,.4)}
+    .pr-mes-nome{display:flex;align-items:center;justify-content:space-between;gap:8px}
+    .pr-mes-nome b{font-size:14px}
+    .pr-mes-ano{font-size:11px;color:var(--text-secondary)}
+    .pr-mes-linha{display:flex;justify-content:space-between;align-items:center;font-size:12px}
+    .pr-mes-linha span{color:var(--text-secondary)}
+    .pr-mes-linha b{font-size:14px}
+    .pr-mes-linha b.is-ok{color:var(--accent-green)}
+    .pr-mes-linha b.is-falta{color:#F87171}
+    .pr-mes-linha b.is-just{color:#FBBF24}
+    .pr-mes-taxa{font-weight:700;font-size:20px;text-align:center;padding-top:10px;border-top:1px solid var(--border-color)}
+    .pr-mes-vazio{border:1px dashed var(--border-color)}
 </style>
 
-<div class="pr-stats">
-    <div class="pr-stat">
-        <div class="pr-stat-header">Taxa de assiduidade</div>
-        <div class="pr-stat-value" style="color:{{ $taxaAssiduidade !== null && $taxaAssiduidade >= 75 ? 'var(--accent-green)' : '#FB923C' }}">
-            {{ $taxaAssiduidade !== null ? number_format($taxaAssiduidade, 1, ',', ' ') . ' %' : '—' }}
+<div class="table-wrap">
+    <div style="padding:14px 16px;font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--text-secondary);font-weight:600;border-bottom:1px solid var(--border-color)">
+        Resumo anual (agregado da escola)
+        <span style="float:right;font-size:11px;text-transform:none;font-weight:400">
+            <select class="pr-select" onchange="this.form.submit()" form="pr-filtro-form" name="mes" style="min-width:130px">
+                <option value="0" @selected($mesFiltro < 1)>Todos os meses</option>
+                @foreach($meses as $num => $nome)
+                <option value="{{ $num }}" @selected($mesFiltro === $num)>{{ $nome }}</option>
+                @endforeach
+            </select>
+            <select class="pr-select" onchange="this.form.submit()" form="pr-filtro-form" name="ano" style="min-width:90px">
+                @foreach($anosDisponiveis as $ano)
+                <option value="{{ $ano }}" @selected($anoFiltro === (int) $ano)>{{ $ano }}</option>
+                @endforeach
+            </select>
+        </span>
+    </div>
+
+    <form id="pr-filtro-form" method="GET" action="{{ url()->current() }}"></form>
+
+    <div class="pr-mes-grid" style="padding:16px;margin:0">
+        @forelse($cardsMensais->where('visivel', true) as $card)
+        @if($card['temRegistos'])
+        <div class="pr-mes-card {{ $mesFiltro === $card['mes'] ? 'destaque' : '' }}">
+            <div class="pr-mes-nome">
+                <b>{{ $card['nome'] }}</b>
+                <span class="pr-mes-ano">{{ $card['ano'] }}</span>
+            </div>
+            <div class="pr-mes-linha">
+                <span>Presenças</span>
+                <b class="is-ok"><i class="fas fa-user-check" style="margin-right:4px"></i>{{ $card['presencas'] }}</b>
+            </div>
+            <div class="pr-mes-linha">
+                <span>Faltas</span>
+                <b class="is-falta"><i class="fas fa-user-times" style="margin-right:4px"></i>{{ $card['faltas'] }}</b>
+            </div>
+            <div class="pr-mes-linha">
+                <span>Faltas justificadas</span>
+                <b class="is-just"><i class="fas fa-clipboard-check" style="margin-right:4px"></i>{{ $card['justificadas'] }}</b>
+            </div>
+            <div class="pr-mes-taxa" style="color:{{ $card['taxa'] !== null ? ($card['taxa'] >= 75 ? 'var(--accent-green)' : ($card['taxa'] >= 50 ? 'var(--accent-yellow)' : '#F87171')) : 'var(--text-secondary)' }}">
+                {{ $card['taxa'] !== null ? $card['taxa'] . ' %' : '—' }}
+            </div>
         </div>
-        @if($taxaAssiduidade !== null)
-        <div class="progress">
-            <div class="progress-bar" style="width:{{ min(100, $taxaAssiduidade) }}%"></div>
+        @else
+        <div class="pr-mes-card pr-mes-vazio">
+            <div class="pr-mes-nome">
+                <b style="color:var(--text-secondary)">{{ $card['nome'] }}</b>
+                <span class="pr-mes-ano">{{ $card['ano'] }}</span>
+            </div>
+            <div class="empty-state" style="padding:18px 10px;font-size:11px">
+                <i class="fas fa-calendar-times" style="font-size:20px;display:block;margin-bottom:8px;opacity:.4"></i>
+                Sem registos
+            </div>
         </div>
         @endif
+        @empty
+        <div class="empty-state" style="grid-column:1/-1">
+            <i class="fas fa-calendar-check" style="font-size:28px;margin-bottom:12px;display:block;opacity:.4"></i>
+            Ainda não há registos de presenças para si no período selecionado.
+        </div>
+        @endforelse
     </div>
-    <div class="pr-stat">
-        <div class="pr-stat-header">Presenças</div>
-        <div class="pr-stat-value" style="color:var(--accent-green)">{{ $totalPresencas }}</div>
-    </div>
-    <div class="pr-stat">
-        <div class="pr-stat-header">Faltas</div>
-        <div class="pr-stat-value" style="color:{{ $totalFaltas > 0 ? '#FB923C' : 'var(--text-primary)' }}">{{ $totalFaltas }}</div>
-        <div style="font-size:11px;color:var(--text-secondary);margin-top:4px">{{ $totalJustificadas }} justificada(s)</div>
-    </div>
-    <div class="pr-stat">
-        <div class="pr-stat-header">Meses registados</div>
-        <div class="pr-stat-value">{{ $presencas->count() }}</div>
-    </div>
-</div>
-
-<div class="table-wrap">
+    <div style="border-top:1px solid var(--border-color)"></div>
     @if($presencas->count() > 0)
     <table class="pr-table">
         <thead>
@@ -92,10 +144,10 @@
         </tbody>
     </table>
     @else
-    <div class="empty-state">
+    <!--<div class="empty-state">
         <i class="fas fa-calendar-check" style="font-size:28px;margin-bottom:12px;display:block;opacity:.4"></i>
         Ainda não há registos de presenças para si.
-    </div>
+    </div>-->
     @endif
 </div>
 @endsection

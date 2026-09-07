@@ -15,10 +15,18 @@ class Presenca extends Model
         'presencas',
         'faltas',
         'justificadas',
+        'tempo',
     ];
 
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function getTaxaAssiduidadeAttribute(): ?float
+    {
+        $total = $this->presencas + $this->faltas;
+
+        return $total > 0 ? round(($this->presencas / $total) * 100, 1) : null;
     }
 }

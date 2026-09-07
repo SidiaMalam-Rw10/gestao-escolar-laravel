@@ -54,9 +54,50 @@ class AlunoAreaController extends Controller
             ? round(($totalPresencas / ($totalPresencas + $totalFaltas)) * 100, 1)
             : null;
 
+        // Cards mensais por mês/ano (com base nas marcações dos professores)
+        $mesFiltro = (int) request()->input('mes');
+        $anoFiltro = (int) request()->input('ano') ?: now()->year;
+
+        $anosDisponiveis = \App\Models\PresencaAlunoMarcacao::where('aluno_id', $user->id)
+            ->distinct()
+            ->orderByDesc('ano')
+            ->pluck('ano')
+            ->values()
+            ->all();
+        if (empty($anosDisponiveis)) {
+            $anosDisponiveis = [now()->year];
+        }
+
+        $marcacoesQuery = $user->presencaAlunoMarcacoes()
+            ->where('ano', $anoFiltro);
+
+        $cardsMensais = collect($meses)->map(function ($nomeMes, $numMes) use ($marcacoesQuery, $mesFiltro, $anoFiltro) {
+            $q = (clone $marcacoesQuery)->where('mes', $numMes);
+
+            $presencasMes = (clone $q)->where('estado', 'presente')->count();
+            $faltasMes = (clone $q)->where('estado', 'falta')->count();
+            $justificadasMes = (clone $q)->where('estado', 'justificada')->count();
+            $taxaMes = ($presencasMes + $faltasMes) > 0
+                ? round(($presencasMes / ($presencasMes + $faltasMes)) * 100, 1)
+                : null;
+
+            return [
+                'mes' => $numMes,
+                'ano' => $anoFiltro,
+                'nome' => $nomeMes,
+                'presencas' => $presencasMes,
+                'faltas' => $faltasMes,
+                'justificadas' => $justificadasMes,
+                'taxa' => $taxaMes,
+                'temRegistos' => $presencasMes + $faltasMes + $justificadasMes > 0,
+                'visivel' => $mesFiltro < 1 || $mesFiltro === $numMes,
+            ];
+        });
+
         return view('aluno.presencas', compact(
             'presencas', 'meses',
-            'totalPresencas', 'totalFaltas', 'totalJustificadas', 'taxaAssiduidade'
+            'totalPresencas', 'totalFaltas', 'totalJustificadas', 'taxaAssiduidade',
+            'cardsMensais', 'mesFiltro', 'anoFiltro', 'anosDisponiveis'
         ));
     }
 }

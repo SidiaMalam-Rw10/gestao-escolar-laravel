@@ -393,6 +393,7 @@
                     <option value="auxiliar" {{ old('role') === 'auxiliar' ? 'selected' : '' }}>Auxiliar</option>
                     <option value="pctp" {{ old('role') === 'pctp' ? 'selected' : '' }}>PCTP (Presidente do Conselho Técnico Pedagógico)</option>
                     <option value="encarregado" {{ old('role') === 'encarregado' ? 'selected' : '' }}>Encarregado de Educação</option>
+                    <option value="funcionario" {{ old('role') === 'funcionario' ? 'selected' : '' }}>Funcionário/a</option>
                 </select>
                 @error('role')
                 <div class="form-error">{{ $message }}</div>
@@ -411,6 +412,7 @@
                         'auxiliar' => 'Auxiliar',
                         'pctp' => 'PCTP',
                         'encarregado' => 'Encarregado',
+                        'funcionario' => 'Funcionário/a',
                     ] as $value => $label)
                     <label class="checkbox-group" style="gap: 6px;">
                         <input type="checkbox" name="roles[]" value="{{ $value }}" {{ in_array($value, old('roles', [])) ? 'checked' : '' }}>
@@ -435,6 +437,23 @@
                 <label class="form-label">Disciplina</label>
                 <input type="text" name="disciplina" value="{{ old('disciplina') }}" class="form-input @error('disciplina') is-invalid @enderror" placeholder="Ex: Matemática">
                 @error('disciplina')
+                <div class="form-error">{{ $message }}</div>
+                @enderror
+            </div>
+
+            <div class="form-group" id="salario-group">
+                <label class="form-label">Salário base (Kz)</label>
+                <input type="number" step="0.01" min="0" name="salario_base" value="{{ old('salario_base') }}" class="form-input @error('salario_base') is-invalid @enderror" placeholder="Ex: 250000.00">
+                @error('salario_base')
+                <div class="form-error">{{ $message }}</div>
+                @enderror
+            </div>
+
+            <div class="form-group" id="desconto-falta-group">
+                <label class="form-label">Desconto por falta (Kz)</label>
+                <input type="number" step="0.01" min="0" name="desconto_por_falta" value="{{ old('desconto_por_falta') }}" class="form-input @error('desconto_por_falta') is-invalid @enderror" placeholder="Ex: 5000.00">
+                <p class="form-hint" style="margin-top:6px;font-size:11px;color:var(--text-secondary)">Valor descontado por cada falta do professor.</p>
+                @error('desconto_por_falta')
                 <div class="form-error">{{ $message }}</div>
                 @enderror
             </div>
@@ -569,6 +588,8 @@
     document.getElementById('role-select').addEventListener('change', function() {
         const role = this.value;
         document.getElementById('disciplina-group').style.display = role === 'professor' ? 'block' : 'none';
+        document.getElementById('salario-group').style.display = role === 'professor' ? 'block' : 'none';
+        document.getElementById('desconto-falta-group').style.display = role === 'professor' ? 'block' : 'none';
         document.getElementById('turma-group').style.display = role === 'aluno' ? 'block' : 'none';
         document.getElementById('nivel-group').style.display = (role === 'aluno' || role === 'professor') ? 'block' : 'none';
         if (role !== 'aluno') {

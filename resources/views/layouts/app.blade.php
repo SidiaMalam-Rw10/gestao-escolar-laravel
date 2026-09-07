@@ -566,7 +566,7 @@
                 </div>
                 @endif
 
-                @if(!auth()->user()->isAdmin() && (auth()->user()->isFinanceiro() || auth()->user()->isDiretor()))
+                @if(!auth()->user()->isAdmin() && (auth()->user()->isFinanceiro() || auth()->user()->hasRole('diretor')))
                 <div class="nav-section">
                     <div class="nav-title">
                         Gestão financeira
@@ -581,6 +581,37 @@
                     <a href="#" class="nav-item">
                         <i class="fas fa-chart-pie"></i>
                         <span>Relatórios</span>
+                    </a>
+                </div>
+                @endif
+
+                @can('ver_salarios')
+                <div class="nav-section">
+                    <div class="nav-title">Recursos Humanos</div>
+                    <a href="{{ route('diretor.salarios.index') }}" class="nav-item {{ request()->routeIs('diretor.salarios.*') ? 'active' : '' }}">
+                        <i class="fas fa-money-check-alt"></i>
+                        <span>Gestão de Salários</span>
+                        @if(auth()->user()->isFinanceiro())
+                        <span style="font-weight:400;color:var(--text-secondary);font-size:9px;text-transform:none;letter-spacing:0;margin-left:auto">(consulta)</span>
+                        @endif
+                    </a>
+                </div>
+                @endcan
+
+                @if(auth()->user()->isAuxiliar())
+                <div class="nav-section">
+                    <div class="nav-title">Presenças</div>
+                    <a href="{{ route('auxiliar.presencas.professores.index') }}" class="nav-item {{ request()->routeIs('auxiliar.presencas.professores.index') ? 'active' : '' }}">
+                        <i class="fas fa-clipboard-list"></i>
+                        <span>Folha dos Professores</span>
+                    </a>
+                    <a href="{{ route('auxiliar.presencas.professores.historico') }}" class="nav-item {{ request()->routeIs('auxiliar.presencas.professores.historico') ? 'active' : '' }}">
+                        <i class="fas fa-history"></i>
+                        <span>Histórico de Faltas</span>
+                    </a>
+                    <a href="{{ route('auxiliar.presencas.alunos.index') }}" class="nav-item {{ request()->routeIs('auxiliar.presencas.alunos.*') ? 'active' : '' }}">
+                        <i class="fas fa-user-check"></i>
+                        <span>Presenças dos Alunos</span>
                     </a>
                 </div>
                 @endif
@@ -618,7 +649,7 @@
                         <i class="fas fa-clipboard-list"></i>
                         <span>Minhas Turmas</span>
                     </a>
-                    <a href="#" class="nav-item">
+                    <a href="{{ route('professor.presencas') }}" class="nav-item {{ request()->routeIs('professor.presencas') ? 'active' : '' }}">
                         <i class="fas fa-user-check"></i>
                         <span>Presenças</span>
                     </a>
@@ -682,14 +713,24 @@
 
                 <div class="nav-section">
                     <div class="nav-title">Ajuda</div>
-                    <a href="#" class="nav-item">
+                    <a href="{{ route('feedbacks.criar', ['tipo' => 'feedback']) }}" class="nav-item {{ request()->routeIs('feedbacks.criar') && request('tipo') === 'feedback' ? 'active' : '' }}">
                         <i class="fas fa-comment-dots"></i>
                         <span>Feedback</span>
                     </a>
-                    <a href="#" class="nav-item">
+                    <a href="{{ route('feedbacks.criar', ['tipo' => 'problema']) }}" class="nav-item {{ request()->routeIs('feedbacks.criar') && request('tipo') === 'problema' ? 'active' : '' }}">
                         <i class="fas fa-bug"></i>
                         <span>Reportar problema</span>
                     </a>
+                    <a href="{{ route('feedbacks.meus') }}" class="nav-item {{ request()->routeIs('feedbacks.meus') ? 'active' : '' }}">
+                        <i class="fas fa-inbox"></i>
+                        <span>Os meus envios</span>
+                    </a>
+                    @if(auth()->user()->isAdmin() || auth()->user()->isDiretor())
+                    <a href="{{ route('admin.feedbacks.index') }}" class="nav-item {{ request()->routeIs('admin.feedbacks.*') ? 'active' : '' }}">
+                        <i class="fas fa-tasks"></i>
+                        <span>Gerir feedbacks</span>
+                    </a>
+                    @endif
                 </div>
             </div>
         </aside>

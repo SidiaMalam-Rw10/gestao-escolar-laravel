@@ -28,6 +28,14 @@ class AppServiceProvider extends ServiceProvider
             return $user->hasRole('diretor') || $user->hasRole('pctp');
         });
 
+        \Illuminate\Support\Facades\Gate::define('ver_salarios', function ($user) {
+            return $user->isAdmin() || $user->isDiretor() || $user->isFinanceiro();
+        });
+
+        \Illuminate\Support\Facades\Gate::define('gerir_salarios', function ($user) {
+            return $user->isAdmin() || $user->isDiretor();
+        });
+
         \Illuminate\Support\Facades\Gate::define('financeiro', function ($user) {
             return $user->hasRole('financeiro');
         });
@@ -44,6 +52,14 @@ class AppServiceProvider extends ServiceProvider
             return $user->hasRole('auxiliar');
         });
 
+        \Illuminate\Support\Facades\Gate::define('presencas_professores', function ($user) {
+            return $user->hasRole('auxiliar') || $user->isAdmin() || $user->isDiretor();
+        });
+
+        \Illuminate\Support\Facades\Gate::define('relatorio_presencas_alunos', function ($user) {
+            return $user->hasRole('auxiliar') || $user->isAdmin() || $user->isDiretor();
+        });
+
         \Illuminate\Support\Facades\Gate::define('encarregado', function ($user) {
             return $user->hasRole('encarregado');
         });
@@ -53,8 +69,8 @@ class AppServiceProvider extends ServiceProvider
         });
 
         \Illuminate\Support\Facades\Gate::define('consultar', function ($user) {
-            return in_array($user->role, ['admin', 'diretor', 'financeiro', 'auxiliar', 'pctp'])
-                || array_intersect($user->roles ?? [], ['admin', 'diretor', 'financeiro', 'auxiliar', 'pctp']);
+            return in_array($user->role, ['admin', 'diretor', 'financeiro', 'auxiliar', 'pctp', 'funcionario'])
+                || array_intersect($user->roles ?? [], ['admin', 'diretor', 'financeiro', 'auxiliar', 'pctp', 'funcionario']);
         });
 
         // Sino de notificações de avisos (layout partilhado)

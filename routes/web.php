@@ -15,6 +15,11 @@ use App\Http\Controllers\PaginaController;
 use App\Http\Controllers\AlunoAreaController;
 use App\Http\Controllers\HorarioController;
 use App\Http\Controllers\ProfessorAreaController;
+use App\Http\Controllers\ProfessorPresencaController;
+use App\Http\Controllers\AuxiliarPresencaController;
+use App\Http\Controllers\AuxiliarAlunoPresencaController;
+use App\Http\Controllers\DiretorSalarioController;
+use App\Http\Controllers\FeedbackController;
 
 // Redirecionamento da raiz para login
 Route::get('/', function () {
@@ -43,6 +48,18 @@ Route::middleware('auth')->group(function () {
     Route::get('/paginas/horario', [PaginaController::class, 'horario'])->name('paginas.horario');
     Route::get('/paginas/atividades', [PaginaController::class, 'atividades'])->name('paginas.atividades');
     Route::get('/paginas/sobre', [PaginaController::class, 'sobre'])->name('paginas.sobre');
+
+    // Feedback & Reportar problema - todos os utilizadores autenticados
+    Route::get('/feedback', [FeedbackController::class, 'criar'])->name('feedbacks.criar');
+    Route::post('/feedback', [FeedbackController::class, 'guardar'])->name('feedbacks.guardar');
+    Route::get('/feedback/meus', [FeedbackController::class, 'meus'])->name('feedbacks.meus');
+
+    // Gestão de feedbacks - admin e diretor/PCTP
+    Route::middleware('can:gerir_avisos')->prefix('admin')->name('admin.')->group(function () {
+        Route::get('feedbacks', [FeedbackController::class, 'index'])->name('feedbacks.index');
+        Route::put('feedbacks/{feedback}', [FeedbackController::class, 'atualizar'])->name('feedbacks.atualizar');
+        Route::delete('feedbacks/{feedback}', [FeedbackController::class, 'destroy'])->name('feedbacks.destroy');
+    });
 
     // Rotas Admin (escrita/gestão completa) - apenas admin
     Route::middleware('can:admin')->prefix('admin')->name('admin.')->group(function () {
@@ -122,9 +139,13 @@ Route::middleware('auth')->group(function () {
         Route::get('encarregados/{encarregado}', [EncarregadoController::class, 'show'])->name('encarregados.show');
     });
 
-    // Rotas Diretor
-    Route::middleware('can:diretor')->prefix('diretor')->name('diretor.')->group(function () {
-        // Adicionar rotas de diretoria aqui
+    // Rotas Salários (Diretor/PCTP gerem; Financeiro vê, sem acesso ao formulário)
+    Route::middleware('can:ver_salarios')->prefix('diretor')->name('diretor.')->group(function () {
+        Route::get('salarios', [DiretorSalarioController::class, 'index'])->name('salarios.index');
+
+        Route::middleware('can:gerir_salarios')->group(function () {
+            Route::put('salarios/{professor}', [DiretorSalarioController::class, 'update'])->name('salarios.update');
+        });
     });
     
     // Rotas Financeiro
@@ -136,6 +157,10 @@ Route::middleware('auth')->group(function () {
     Route::middleware('can:professor')->prefix('professor')->name('professor.')->group(function () {
         Route::get('meu-horario', [ProfessorAreaController::class, 'meuHorario'])->name('meu-horario');
         Route::get('minhas-turmas', [ProfessorAreaController::class, 'minhasTurmas'])->name('minhas-turmas');
+        Route::get('presencas', [ProfessorPresencaController::class, 'index'])->name('presencas');
+        Route::post('presencas/marcar', [ProfessorPresencaController::class, 'marcar'])->name('presencas.marcar');
+        Route::post('presencas/desfazer', [ProfessorPresencaController::class, 'desfazer'])->name('presencas.desfazer');
+        Route::get('presencas/{aluno}/pdf', [ProfessorPresencaController::class, 'pdf'])->name('presencas.pdf');
     });
     
     // Rotas Aluno
@@ -153,6 +178,21 @@ Route::middleware('auth')->group(function () {
         Route::get('filhos/{aluno}/horario', [EncarregadoController::class, 'filhoHorario'])->name('filhos.horario');
         Route::get('filhos/{aluno}/pagamentos', [EncarregadoController::class, 'filhoPagamentos'])->name('filhos.pagamentos');
         Route::get('filhos/{aluno}/presencas', [EncarregadoController::class, 'filhoPresencas'])->name('filhos.presencas');
+    });
+
+    // Rotas Auxiliar - Gestão de presenças dos professores
+    Route::middleware('can:presencas_professores')->prefix('auxiliar')->name('auxiliar.')->group(function () {
+        Route::get('presencas/professores', [AuxiliarPresencaController::class, 'index'])->name('presencas.professores.index');
+        Route::post('presencas/professores/marcar', [AuxiliarPresencaController::class, 'marcar'])->name('presencas.professores.marcar');
+        Route::post('presencas/professores/desfazer', [AuxiliarPresencaController::class, 'desfazer'])->name('presencas.professores.desfazer');
+        Route::get('presencas/professores/historico', [AuxiliarPresencaController::class, 'historico'])->name('presencas.professores.historico');
+        Route::get('presencas/professores/{professor}/pdf', [AuxiliarPresencaController::class, 'pdf'])->name('presencas.professores.pdf');
+    });
+
+    // Rotas Auxiliar - Relatório de presenças/faltas dos alunos (apenas leitura)
+    Route::middleware('can:relatorio_presencas_alunos')->prefix('auxiliar')->name('auxiliar.')->group(function () {
+        Route::get('presencas/alunos', [AuxiliarAlunoPresencaController::class, 'index'])->name('presencas.alunos.index');
+        Route::get('presencas/alunos/{turma}/pdf', [AuxiliarAlunoPresencaController::class, 'pdf'])->name('presencas.alunos.pdf');
     });
 
     // Rotas de avisos (admin e diretor/PCTP podem publicar)

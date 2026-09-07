@@ -22,6 +22,8 @@ use Illuminate\Notifications\Notifiable;
     'genero',
     'foto',
     'disciplina',
+    'salario_base',
+    'desconto_por_falta',
     'turma_id',
     'encarregado_id',
     'nivel',
@@ -47,6 +49,8 @@ class User extends Authenticatable
             'password' => 'hashed',
             'is_active' => 'boolean',
             'roles' => 'array',
+            'salario_base' => 'decimal:2',
+            'desconto_por_falta' => 'decimal:2',
         ];
     }
 
@@ -123,6 +127,55 @@ class User extends Authenticatable
     public function presencas()
     {
         return $this->hasMany(Presenca::class);
+    }
+
+    public function presencaMarcacoes()
+    {
+        return $this->hasMany(PresencaMarcacao::class, 'user_id');
+    }
+
+    public function presencaAlunoMarcacoes()
+    {
+        return $this->hasMany(PresencaAlunoMarcacao::class, 'aluno_id');
+    }
+
+    /**
+     * Total de faltas registadas pelo auxiliar num período (professor).
+     */
+    public function faltasProfessor(?int $mes = null, ?int $ano = null): int
+    {
+        $query = PresencaMarcacao::where('user_id', $this->id)->where('estado', 'falta');
+
+        if ($mes) {
+            $query->where('mes', $mes);
+        }
+        if ($ano) {
+            $query->where('ano', $ano);
+        }
+
+        return $query->count();
+    }
+
+    /**
+     * Total descontado por faltas num período.
+     */
+    public function descontoTotalProfessor(?int $mes = null, ?int $ano = null): float
+    {
+        if ($this->desconto_por_falta === null) {
+            return 0.0;
+        }
+
+        return round($this->desconto_por_falta * $this->faltasProfessor($mes, $ano), 2);
+    }
+
+    /**
+     * Salário líquido após descontos por faltas.
+     */
+    public function salarioLiquido(?int $mes = null, ?int $ano = null): float
+    {
+        $base = (float) $this->salario_base;
+
+        return round($base - $this->descontoTotalProfessor($mes, $ano), 2);
     }
 
     public function horariosComoProfessor()
@@ -214,5 +267,10 @@ class User extends Authenticatable
     public function isEncarregado()
     {
         return $this->hasRole('encarregado');
+    }
+
+    public function isFuncionario()
+    {
+        return $this->hasRole('funcionario');
     }
 }

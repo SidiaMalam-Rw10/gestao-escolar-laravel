@@ -831,16 +831,16 @@
         <div class="card-value" style="color: var(--accent-green);">{{ $filhos->count() }}</div>
         <div class="card-icon" style="color: var(--accent-green);"><i class="fas fa-child"></i></div>
     </div>
-    <div class="card">
+    <!--<div class="card">
         <div class="card-header">Avisos não lidos</div>
         <div class="card-value" style="color: {{ $avisosNaoLidos > 0 ? '#FCD34D' : 'var(--text-secondary)' }};">{{ $avisosNaoLidos }}</div>
         <div class="card-icon" style="color: #FCD34D;"><i class="fas fa-bell"></i></div>
-    </div>
-    <div class="card">
+    </div>-->
+    <!--<div class="card">
         <div class="card-header">Faltas este ano</div>
         <div class="card-value" style="color: {{ $totalFaltasAno > 0 ? '#FB923C' : 'var(--text-primary)' }};">{{ $totalFaltasAno }}</div>
         <div class="card-icon" style="color: #FB923C;"><i class="fas fa-user-times"></i></div>
-    </div>
+    </div>-->
     <div class="card">
         <div class="card-header">Em dívida ({{ date('Y') }})</div>
         <div class="card-value" style="color: {{ $dividaTotal > 0 ? '#FCA5A5' : 'var(--text-primary)' }};">{{ number_format($dividaTotal, 0, ',', ' ') }} Xof</div>
@@ -850,7 +850,7 @@
 
 <div class="grid-2col" style="margin-bottom: 24px;">
     <!-- Alertas de Faltas -->
-    <div class="card">
+    <!--<div class="card">
         <div class="card-section-header">
             <div class="card-section-title">
                 <i class="fas fa-user-times" style="color: #FB923C;"></i>
@@ -875,7 +875,7 @@
         @else
         <div class="empty-state"><i class="fas fa-check-circle" style="color:var(--accent-green);margin-bottom:8px;display:block"></i>Sem alertas — tudo em ordem nas presenças.</div>
         @endif
-    </div>
+    </div>-->
 
     <!-- Alertas de Pagamentos -->
     <div class="card">
