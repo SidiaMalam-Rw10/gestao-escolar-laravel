@@ -18,11 +18,21 @@ class PerfilController extends Controller
     {
         $user = auth()->user();
 
+        if ($request->hasFile('foto')) {
+            $f = $request->file('foto');
+            \Illuminate\Support\Facades\Log::warning('Upload de foto de perfil', [
+                'nome' => $f->getClientOriginalName(),
+                'tamanho' => $f->getSize(),
+                'erro' => $f->getError(),
+                'mime_cliente' => $f->getClientMimeType(),
+            ]);
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:150',
             'email' => 'nullable|email|max:255|unique:users,email,' . $user->id,
             'telefone' => 'nullable|string|max:20',
-            'foto' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:2048',
+            'foto' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:5120',
         ]);
 
         $fotoAntiga = $user->foto;

@@ -84,6 +84,10 @@ class AppServiceProvider extends ServiceProvider
             return $user->isAdmin() || $user->isDiretor();
         });
 
+        \Illuminate\Support\Facades\Gate::define('dono', function ($user) {
+            return $user->isProprietario();
+        });
+
         \Illuminate\Support\Facades\Gate::define('consultar', function ($user) {
             return in_array($user->role, ['admin', 'diretor', 'financeiro', 'auxiliar', 'pctp', 'funcionario', 'proprietario'])
                 || array_intersect($user->roles ?? [], ['admin', 'diretor', 'financeiro', 'auxiliar', 'pctp', 'funcionario', 'proprietario']);

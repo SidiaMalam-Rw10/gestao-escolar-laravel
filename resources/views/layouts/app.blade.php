@@ -789,6 +789,20 @@
                     </a>
                 </div>
                 @endcan
+
+                @can('dono')
+                <div class="nav-section">
+                    <div class="nav-title">Painel MiScool</div>
+                    <a href="{{ route('central.escolas.index') }}" class="nav-item {{ request()->routeIs('central.escolas.*') ? 'active' : '' }}">
+                        <i class="fas fa-school"></i>
+                        <span>Escolas registadas</span>
+                    </a>
+                    <a href="{{ route('central.escolas.create') }}" class="nav-item {{ request()->routeIs('central.escolas.create') ? 'active' : '' }}">
+                        <i class="fas fa-plus-circle"></i>
+                        <span>Adicionar escola</span>
+                    </a>
+                </div>
+                @endcan
             </div>
         </aside>
 
@@ -908,6 +922,12 @@
                             <a href="{{ route('configuracoes.index') }}" class="dropdown-item {{ request()->routeIs('configuracoes.*') ? 'active' : '' }}">
                                 <i class="fas fa-cog"></i>
                                 <span>Configurações</span>
+                            </a>
+                            @endcan
+                            @can('dono')
+                            <a href="{{ route('central.escolas.index') }}" class="dropdown-item {{ request()->routeIs('central.escolas.*') ? 'active' : '' }}">
+                                <i class="fas fa-school"></i>
+                                <span>Painel MiScool — Escolas</span>
                             </a>
                             @endcan
                             <div class="dropdown-item">

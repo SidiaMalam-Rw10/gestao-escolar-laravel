@@ -37,7 +37,9 @@ class AuthController extends Controller
         }
 
         return back()->withErrors([
-            'username' => 'Credenciais inválidas.',
+            'username' => $utilizador
+                ? 'Palavra-passe incorreta para «' . $utilizador->name . '».'
+                : 'Não existe um utilizador com o nome «' . $request->username . '» nesta base de dados.',
         ])->onlyInput('username');
     }
 

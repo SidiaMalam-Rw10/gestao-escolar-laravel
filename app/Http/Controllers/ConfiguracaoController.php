@@ -51,7 +51,15 @@ class ConfiguracaoController extends Controller
 
         // Logotipo da escola (só no grupo escola) — guardado antes do resto
         if ($grupo === 'escola' && $request->hasFile('logotipo')) {
-            $request->validate(['logotipo' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:2048']);
+            $fl = $request->file('logotipo');
+            \Illuminate\Support\Facades\Log::warning('Upload de logotipo', [
+                'nome' => $fl->getClientOriginalName(),
+                'tamanho' => $fl->getSize(),
+                'erro' => $fl->getError(),
+                'mime_cliente' => $fl->getClientMimeType(),
+            ]);
+
+            $request->validate(['logotipo' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:5120']);
 
             $antigo = Configuracao::obter('escola.logotipo');
             $caminho = $request->file('logotipo')->store('escola', 'public');

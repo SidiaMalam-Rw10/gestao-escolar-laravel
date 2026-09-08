@@ -27,6 +27,7 @@ use App\Http\Controllers\FicheiroController;
 use App\Http\Controllers\MensagemController;
 use App\Http\Controllers\PerfilController;
 use App\Http\Controllers\ConfiguracaoController;
+use App\Http\Controllers\EscolaController;
 
 // Redirecionamento da raiz para login
 Route::get('/', function () {
@@ -271,6 +272,16 @@ Route::middleware('auth')->group(function () {
     Route::middleware('can:gerir_configuracoes')->prefix('configuracoes')->name('configuracoes.')->group(function () {
         Route::get('/', [ConfiguracaoController::class, 'index'])->name('index');
         Route::put('/', [ConfiguracaoController::class, 'update'])->name('update');
+    });
+
+    // Painel MiScool (dono do aplicativo)
+    Route::middleware('can:dono')->prefix('central')->name('central.')->group(function () {
+        Route::get('escolas', [EscolaController::class, 'index'])->name('escolas.index');
+        Route::get('escolas/nova', [EscolaController::class, 'create'])->name('escolas.create');
+        Route::post('escolas', [EscolaController::class, 'store'])->name('escolas.store');
+        Route::get('escolas/{escola}/editar', [EscolaController::class, 'edit'])->name('escolas.edit');
+        Route::put('escolas/{escola}', [EscolaController::class, 'update'])->name('escolas.update');
+        Route::delete('escolas/{escola}', [EscolaController::class, 'destroy'])->name('escolas.destroy');
     });
 });
 

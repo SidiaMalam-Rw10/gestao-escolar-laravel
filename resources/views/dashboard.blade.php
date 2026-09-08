@@ -589,7 +589,9 @@
     </div>
     @php
         $meses = [1 => 'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-        $maxReceita = max($receitasMes->values()->all()) > 0 ? max($receitasMes->values()->all()) : 1;
+        $receitasLista = $receitasMes ? $receitasMes->values()->all() : [];
+        $maxReceita = ! empty($receitasLista) ? max($receitasLista) : 0;
+        $maxReceita = $maxReceita > 0 ? $maxReceita : 1;
     @endphp
     <div style="display: flex; align-items: flex-end; gap: 6px; height: 180px; padding: 0 4px;">
         @foreach($meses as $num => $nome)

@@ -64,6 +64,7 @@
                     <button type="button" class="btn-danger" onclick="event.preventDefault(); if(confirm('Remover a foto de perfil?')){document.getElementById('pf-remover-foto').submit();}"><i class="fas fa-trash"></i> Remover</button>
                     @endif
                 </div>
+                @error('foto')<div class="form-error" style="margin-top:8px">{{ $message }}</div>@enderror
                 <div style="display:none" id="pf-foto-preview-wrap"><img id="pf-foto-preview" src="" alt=""></div>
             </form>
             @if(auth()->user()->foto)
