@@ -60,7 +60,7 @@
 @if($horarios->isNotEmpty() && $turma)
 <div class="hz-doc">
     <div class="header-top">
-        <h1>{{ config('app.name', 'Sistema de Gestão Escolar') }}</h1>
+        <h1>{{ \App\Models\Configuracao::nome() }}</h1>
         <h2>Horário Semanal</h2>
         <h3>Conselho Técnico Pedagógico</h3>
     </div>
@@ -71,7 +71,7 @@
             <p><strong>Nº:</strong> {{ $aluno->numero ?? '—' }}</p>
         </div>
         <div class="logo-container">
-            <img src="{{ asset('logo.png') }}" alt="Logo">
+            <img src="{{ \App\Models\Configuracao::logotipoUrl() ?? asset('logo.png') }}" alt="Logo">
         </div>
         <div class="info-column" style="text-align:right">
             <p><strong>Turma:</strong> {{ $turma->nome_turma }}</p>

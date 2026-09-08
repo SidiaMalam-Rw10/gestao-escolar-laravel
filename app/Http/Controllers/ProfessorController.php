@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\Turma;
+use App\Models\Atividade;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
@@ -74,7 +75,9 @@ class ProfessorController extends Controller
         $validated['role'] = 'professor';
         $validated['is_active'] = true;
 
-        User::create($validated);
+        $professor = User::create($validated);
+
+        Atividade::registar('create', "Criou o professor '{$professor->name}'", null, User::class, $professor->id, ['username' => $professor->username, 'disciplina' => $professor->disciplina]);
 
         return redirect()->route('admin.professores.index')->with('success', 'Professor criado com sucesso!');
     }
@@ -117,12 +120,15 @@ class ProfessorController extends Controller
 
         $professor->update($validated);
 
+        Atividade::registar('update', "Atualizou o professor '{$professor->name}'", null, User::class, $professor->id);
+
         return redirect()->route('admin.professores.index')->with('success', 'Professor atualizado com sucesso!');
     }
 
     public function destroy(User $professor)
     {
         $professor->delete();
+        Atividade::registar('delete', "Eliminou o professor '{$professor->name}'", null, User::class, $professor->id);
         return redirect()->route('admin.professores.index')->with('success', 'Professor eliminado com sucesso!');
     }
 
@@ -130,6 +136,8 @@ class ProfessorController extends Controller
     {
         $professor->update(['is_active' => !$professor->is_active]);
         $status = $professor->is_active ? 'ativado' : 'desativado';
+        $verbo = $professor->is_active ? 'Ativou' : 'Desativou';
+        Atividade::registar('update', "{$verbo} o professor '{$professor->name}'", null, User::class, $professor->id, ['is_active' => $professor->is_active]);
         return back()->with('success', "Professor {$status} com sucesso!");
     }
 }

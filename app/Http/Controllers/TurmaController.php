@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Turma;
 use App\Models\User;
+use App\Models\Atividade;
 use Illuminate\Http\Request;
 
 class TurmaController extends Controller
@@ -61,9 +62,13 @@ class TurmaController extends Controller
             'ano_lectivo' => 'required|integer|min:2020|max:2030',
             'professor_responsavel_id' => 'nullable|exists:users,id',
             'capacidade' => 'nullable|integer|min:1|max:100',
+            'propina_mensal' => 'nullable|numeric|min:0',
+            'meses_pagamento' => 'nullable|integer|min:1|max:12',
         ]);
 
-        Turma::create($validated);
+        $turma = Turma::create($validated);
+
+        Atividade::registar('create', "Criou a turma '{$turma->nome_turma}'", null, Turma::class, $turma->id, ['nivel' => $turma->nivel, 'periodo' => $turma->periodo]);
 
         return redirect()->route('admin.turmas.index')->with('success', 'Turma criada com sucesso!');
     }
@@ -89,16 +94,22 @@ class TurmaController extends Controller
             'ano_lectivo' => 'required|integer|min:2020|max:2030',
             'professor_responsavel_id' => 'nullable|exists:users,id',
             'capacidade' => 'nullable|integer|min:1|max:100',
+            'propina_mensal' => 'nullable|numeric|min:0',
+            'meses_pagamento' => 'nullable|integer|min:1|max:12',
         ]);
 
         $turma->update($validated);
+
+        Atividade::registar('update', "Atualizou a turma '{$turma->nome_turma}'", null, Turma::class, $turma->id);
 
         return redirect()->route('admin.turmas.index')->with('success', 'Turma atualizada com sucesso!');
     }
 
     public function destroy(Turma $turma)
     {
+        $nome = $turma->nome_turma;
         $turma->delete();
+        Atividade::registar('delete', "Eliminou a turma '{$nome}'", null, Turma::class, $turma->id);
         return redirect()->route('admin.turmas.index')->with('success', 'Turma eliminada com sucesso!');
     }
 }

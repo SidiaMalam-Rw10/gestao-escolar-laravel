@@ -1,9 +1,10 @@
 <!DOCTYPE html>
+@php use App\Models\Configuracao; @endphp
 <html lang="pt">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'Sistema de Gestão Escola')</title>
+    <title>@yield('title', Configuracao::obter('escola.nome', 'Sistema de Gestão Escolar'))</title>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <style>
@@ -269,6 +270,36 @@
             place-items: center;
             font-weight: 700;
             font-size: 11px;
+            overflow: hidden;
+        }
+
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .flash {
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .flash-success {
+            background: rgba(34, 197, 94, 0.12);
+            border: 1px solid rgba(34, 197, 94, 0.4);
+            color: #86EFAC;
+        }
+
+        .flash-error {
+            background: rgba(239, 68, 68, 0.12);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            color: #FCA5A5;
         }
 
         .dropdown-menu {
@@ -488,10 +519,12 @@
         <!-- Sidebar -->
         <aside :class="{ 'mobile-open': sidebarOpen }">
             <div class="logo">
-                <div class="logo-icon"><img src="{{ asset('logo.png') }}" alt="Logo" style="width: 150%; height: 150%; object-fit: contain;"></div>
+                <div class="logo-icon" style="background:{{ Configuracao::obter('escola.logotipo') ? 'transparent' : 'var(--accent-green)' }}">
+                    <img src="{{ Configuracao::obter('escola.logotipo') ? asset('storage/' . Configuracao::obter('escola.logotipo')) : asset('logo.png') }}" alt="Logo" style="width: 100%; height: 100%; object-fit: contain; border-radius: 4px;">
+                </div>
                 <div class="logo-text">
-                    <div class="logo-title">MiScool</div>
-                    <div class="logo-subtitle">By We-Tech</div>
+                    <div class="logo-title">{{ Configuracao::obter('escola.nome', 'MiScool') }}</div>
+                    <div class="logo-subtitle">By RW-10</div>
                 </div>
             </div>
 
@@ -566,7 +599,7 @@
                 </div>
                 @endif
 
-                @if(!auth()->user()->isAdmin() && (auth()->user()->isFinanceiro() || auth()->user()->hasRole('diretor')))
+                @if(!auth()->user()->isAdmin() && (auth()->user()->isFinanceiro() || auth()->user()->isDiretor()))
                 <div class="nav-section">
                     <div class="nav-title">
                         Gestão financeira
@@ -574,14 +607,28 @@
                         <span style="font-weight:400;color:var(--text-secondary);font-size:9px;text-transform:none;letter-spacing:0;margin-left:4px">(somente leitura)</span>
                         @endif
                     </div>
-                    <a href="#" class="nav-item">
+                    @if(auth()->user()->isFinanceiro())
+                    <a href="{{ route('financeiro.pagamentos.index') }}" class="nav-item {{ request()->routeIs('financeiro.pagamentos.*') && !request()->routeIs('financeiro.pagamentos.create') && !request()->routeIs('financeiro.pagamentos.store') ? 'active' : '' }}">
                         <i class="fas fa-money-bill-wave"></i>
                         <span>Pagamentos</span>
                     </a>
-                    <a href="#" class="nav-item">
+                    @else
+                    <a href="{{ route('financeiro.pagamentos.index') }}" class="nav-item {{ request()->routeIs('financeiro.pagamentos.index') ? 'active' : '' }}">
+                        <i class="fas fa-money-bill-wave"></i>
+                        <span>Pagamentos</span>
+                    </a>
+                    @endif
+                    @if(auth()->user()->isFinanceiro())
+                    <a href="{{ route('financeiro.relatorios') }}" class="nav-item {{ request()->routeIs('financeiro.relatorios') ? 'active' : '' }}">
                         <i class="fas fa-chart-pie"></i>
                         <span>Relatórios</span>
                     </a>
+                    @else
+                    <a href="{{ route('financeiro.relatorios') }}" class="nav-item {{ request()->routeIs('financeiro.relatorios') ? 'active' : '' }}">
+                        <i class="fas fa-chart-pie"></i>
+                        <span>Relatórios</span>
+                    </a>
+                    @endif
                 </div>
                 @endif
 
@@ -732,6 +779,16 @@
                     </a>
                     @endif
                 </div>
+
+                @can('gerir_configuracoes')
+                <div class="nav-section">
+                    <div class="nav-title">Sistema</div>
+                    <a href="{{ route('configuracoes.index') }}" class="nav-item {{ request()->routeIs('configuracoes.*') ? 'active' : '' }}">
+                        <i class="fas fa-cog"></i>
+                        <span>Configurações</span>
+                    </a>
+                </div>
+                @endcan
             </div>
         </aside>
 
@@ -749,17 +806,26 @@
                 </div>
 
                 <div class="header-right">
-                    <a href="#" class="header-link">
+                    @if(Configuracao::obter('escola.ano_letivo'))
+                    <span class="header-link" style="cursor: default" title="Ano letivo em curso">
+                        <i class="far fa-calendar-alt"></i>
+                        <span>{{ Configuracao::obter('escola.ano_letivo') }}</span>
+                    </span>
+                    @endif
+                    <a href="{{ route('calendario.index') }}" class="header-link {{ request()->routeIs('calendario.*') ? 'active' : '' }}">
                         <i class="far fa-calendar"></i>
                         <span>Calendrier</span>
                     </a>
-                    <a href="#" class="header-link">
+                    <a href="{{ route('ficheiros.index') }}" class="header-link {{ request()->routeIs('ficheiros.*') ? 'active' : '' }}">
                         <i class="far fa-folder"></i>
                         <span>Fichiers</span>
                     </a>
-                    <a href="#" class="header-link">
+                    <a href="{{ route('inbox.index') }}" class="header-link {{ request()->routeIs('inbox.*') ? 'active' : '' }}" style="position:relative">
                         <i class="far fa-envelope"></i>
                         <span>Inbox</span>
+                        @if($notifMensagensNaoLidas > 0)
+                        <span class="bell-badge">{{ $notifMensagensNaoLidas }}</span>
+                        @endif
                     </a>
 
                     <div style="width: 1px; height: 20px; background: var(--border-color);"></div>
@@ -815,7 +881,11 @@
                     <div class="user-menu" x-data="{ open: false }">
                         <button @click="open = !open" class="user-button">
                             <div class="user-avatar">
-                                {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                                @if(auth()->user()->fotoUrl())
+                                <img src="{{ auth()->user()->fotoUrl() }}" alt="{{ auth()->user()->name }}">
+                                @else
+                                {{ auth()->user()->inicial() }}
+                                @endif
                             </div>
                             <i class="fas fa-chevron-down" style="font-size: 10px; color: var(--text-secondary);"></i>
                         </button>
@@ -824,14 +894,22 @@
                              @click.away="open = false"
                              x-cloak
                              class="dropdown-menu">
-                            <a href="#" class="dropdown-item">
+                            <a href="{{ route('perfil.index') }}" class="dropdown-item {{ request()->routeIs('perfil.*') ? 'active' : '' }}">
                                 <i class="fas fa-user"></i>
                                 <span>Perfil</span>
                             </a>
-                            <a href="#" class="dropdown-item">
+                            @if(auth()->user()->isAdmin())
+                            <a href="{{ route('admin.atividades.index') }}" class="dropdown-item {{ request()->routeIs('admin.atividades.*') ? 'active' : '' }}">
+                                <i class="fas fa-history"></i>
+                                <span>Atividades Recentes</span>
+                            </a>
+                            @endif
+                            @can('gerir_configuracoes')
+                            <a href="{{ route('configuracoes.index') }}" class="dropdown-item {{ request()->routeIs('configuracoes.*') ? 'active' : '' }}">
                                 <i class="fas fa-cog"></i>
                                 <span>Configurações</span>
                             </a>
+                            @endcan
                             <div class="dropdown-item">
                                 <form method="POST" action="{{ route('logout') }}" style="width: 100%;">
                                     @csrf
@@ -846,6 +924,12 @@
             </header>
 
             <div class="content">
+                @if(session('success'))
+                <div class="flash flash-success"><i class="fas fa-check-circle"></i> {{ session('success') }}</div>
+                @endif
+                @if(session('error'))
+                <div class="flash flash-error"><i class="fas fa-exclamation-circle"></i> {{ session('error') }}</div>
+                @endif
                 @yield('content')
             </div>
         </main>

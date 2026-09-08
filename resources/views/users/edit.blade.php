@@ -383,6 +383,7 @@
                     <option value="">Selecionar...</option>
                     <option value="admin" {{ old('role', $user->role) === 'admin' ? 'selected' : '' }}>Administrador/a</option>
                     <option value="diretor" {{ old('role', $user->role) === 'diretor' ? 'selected' : '' }}>Diretor/a</option>
+                    <option value="proprietario" {{ old('role', $user->role) === 'proprietario' ? 'selected' : '' }}>Proprietário do colégio</option>
                     <option value="financeiro" {{ old('role', $user->role) === 'financeiro' ? 'selected' : '' }}>Financeiro/a</option>
                     <option value="professor" {{ old('role', $user->role) === 'professor' ? 'selected' : '' }}>Professor/a</option>
                     <option value="aluno" {{ old('role', $user->role) === 'aluno' ? 'selected' : '' }}>Aluno/a</option>
@@ -403,6 +404,7 @@
                     @foreach([
                         'admin' => 'Administrador/a',
                         'diretor' => 'Diretor/a',
+                        'proprietario' => 'Proprietário',
                         'financeiro' => 'Financeiro/a',
                         'professor' => 'Professor/a',
                         'aluno' => 'Aluno/a',
@@ -434,23 +436,6 @@
                 <label class="form-label">Disciplina</label>
                 <input type="text" name="disciplina" value="{{ old('disciplina', $user->disciplina) }}" class="form-input @error('disciplina') is-invalid @enderror" placeholder="Ex: Matemática">
                 @error('disciplina')
-                <div class="form-error">{{ $message }}</div>
-                @enderror
-            </div>
-
-            <div class="form-group" id="salario-group">
-                <label class="form-label">Salário base (Kz)</label>
-                <input type="number" step="0.01" min="0" name="salario_base" value="{{ old('salario_base', $user->salario_base !== null ? number_format((float) $user->salario_base, 2, '.', '') : '') }}" class="form-input @error('salario_base') is-invalid @enderror" placeholder="Ex: 250000.00">
-                @error('salario_base')
-                <div class="form-error">{{ $message }}</div>
-                @enderror
-            </div>
-
-            <div class="form-group" id="desconto-falta-group">
-                <label class="form-label">Desconto por falta (Kz)</label>
-                <input type="number" step="0.01" min="0" name="desconto_por_falta" value="{{ old('desconto_por_falta', $user->desconto_por_falta !== null ? number_format((float) $user->desconto_por_falta, 2, '.', '') : '') }}" class="form-input @error('desconto_por_falta') is-invalid @enderror" placeholder="Ex: 5000.00">
-                <p class="form-hint" style="margin-top:6px;font-size:11px;color:var(--text-secondary)">Valor descontado por cada falta do professor.</p>
-                @error('desconto_por_falta')
                 <div class="form-error">{{ $message }}</div>
                 @enderror
             </div>
@@ -589,8 +574,6 @@
     document.getElementById('role-select').addEventListener('change', function() {
         const role = this.value;
         document.getElementById('disciplina-group').style.display = role === 'professor' ? 'block' : 'none';
-        document.getElementById('salario-group').style.display = role === 'professor' ? 'block' : 'none';
-        document.getElementById('desconto-falta-group').style.display = role === 'professor' ? 'block' : 'none';
         document.getElementById('turma-group').style.display = role === 'aluno' ? 'block' : 'none';
         document.getElementById('nivel-group').style.display = (role === 'aluno' || role === 'professor') ? 'block' : 'none';
         if (role !== 'aluno') {

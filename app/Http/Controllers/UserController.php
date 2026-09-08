@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\Turma;
+use App\Models\Atividade;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
@@ -60,9 +61,9 @@ class UserController extends Controller
             'username' => 'required|string|max:255|unique:users,username',
             'email' => 'nullable|email|max:255|unique:users,email',
             'password' => 'required|string|min:6|confirmed',
-            'role' => 'required|in:admin,diretor,financeiro,professor,aluno,auxiliar,pctp,encarregado,funcionario',
+            'role' => 'required|in:admin,diretor,financeiro,professor,aluno,auxiliar,pctp,encarregado,funcionario,proprietario',
             'roles' => 'nullable|array',
-            'roles.*' => 'in:admin,diretor,financeiro,professor,aluno,auxiliar,pctp,encarregado,funcionario',
+            'roles.*' => 'in:admin,diretor,financeiro,professor,aluno,auxiliar,pctp,encarregado,funcionario,proprietario',
             'numero' => [
                 'nullable', 'string', 'max:50',
                 Rule::unique('users', 'numero')->where(fn ($q) => $q->where('turma_id', $request->turma_id)),
@@ -82,7 +83,9 @@ class UserController extends Controller
         $validated['is_active'] = true;
         $validated['roles'] = $request->input('roles', []);
 
-        User::create($validated);
+        $user = User::create($validated);
+
+        Atividade::registar('create', "Criou o utilizador '{$user->name}' ({$user->role})", null, User::class, $user->id, ['username' => $user->username, 'roles' => $user->roles]);
 
         return redirect()->route('admin.users.index')->with('success', 'Usuário criado com sucesso!');
     }
@@ -107,9 +110,9 @@ class UserController extends Controller
             'username' => 'required|string|max:255|unique:users,username,' . $user->id,
             'email' => 'nullable|email|max:255|unique:users,email,' . $user->id,
             'password' => 'nullable|string|min:6|confirmed',
-            'role' => 'required|in:admin,diretor,financeiro,professor,aluno,auxiliar,pctp,encarregado,funcionario',
+            'role' => 'required|in:admin,diretor,financeiro,professor,aluno,auxiliar,pctp,encarregado,funcionario,proprietario',
             'roles' => 'nullable|array',
-            'roles.*' => 'in:admin,diretor,financeiro,professor,aluno,auxiliar,pctp,encarregado,funcionario',
+            'roles.*' => 'in:admin,diretor,financeiro,professor,aluno,auxiliar,pctp,encarregado,funcionario,proprietario',
             'numero' => [
                 'nullable', 'string', 'max:50',
                 Rule::unique('users', 'numero')->ignore($user->id)->where(fn ($q) => $q->where('turma_id', $request->turma_id)),
@@ -137,6 +140,8 @@ class UserController extends Controller
 
         $user->update($validated);
 
+        Atividade::registar('update', "Atualizou o utilizador '{$user->name}'", null, User::class, $user->id, ['username' => $user->username, 'roles' => $user->roles]);
+
         return redirect()->route('admin.users.index')->with('success', 'Usuário atualizado com sucesso!');
     }
 
@@ -147,6 +152,8 @@ class UserController extends Controller
         }
 
         $user->delete();
+
+        Atividade::registar('delete', "Eliminou o utilizador '{$user->name}'", null, User::class, $user->id);
 
         return redirect()->route('admin.users.index')->with('success', 'Usuário eliminado com sucesso!');
     }
@@ -160,6 +167,8 @@ class UserController extends Controller
         $user->update(['is_active' => !$user->is_active]);
 
         $status = $user->is_active ? 'ativado' : 'desativado';
+        $verbo = $user->is_active ? 'Ativou' : 'Desativou';
+        Atividade::registar('update', "{$verbo} o utilizador '{$user->name}'", null, User::class, $user->id, ['is_active' => $user->is_active]);
         return back()->with('success', "Usuário {$status} com sucesso!");
     }
 }

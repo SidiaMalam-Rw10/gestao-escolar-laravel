@@ -59,6 +59,8 @@
             <div class="info-item"><span class="info-label">Período</span><span class="info-value">{{ $turma->periodo }}</span></div>
             <div class="info-item"><span class="info-label">Ano Lectivo</span><span class="info-value">{{ $turma->ano_lectivo }}</span></div>
             <div class="info-item"><span class="info-label">Capacidade</span><span class="info-value">{{ $turma->alunos->count() }} / {{ $turma->capacidade }}</span></div>
+            <div class="info-item"><span class="info-label">Propina Mensal</span><span class="info-value">{{ number_format($turma->propina_mensal, 2, ',', ' ') }} Xof</span></div>
+            <div class="info-item"><span class="info-label">Meses de pagamento</span><span class="info-value">{{ $turma->meses_pagamento }} por ano ({{ number_format($turma->propina_anual, 2, ',', ' ') }} Xof/ano)</span></div>
             <div class="info-item"><span class="info-label">Professor Responsável</span><span class="info-value">{{ $turma->professorResponsavel ? $turma->professorResponsavel->name : '—' }}</span></div>
         </div>
     </div>

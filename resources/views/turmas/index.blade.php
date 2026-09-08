@@ -105,6 +105,7 @@
         <div class="turma-info">
             <div class="turma-info-row"><i class="fas fa-calendar"></i> {{ $turma->ano_lectivo }}</div>
             <div class="turma-info-row"><i class="fas fa-users"></i> {{ $turma->alunos->count() }} / {{ $turma->capacidade }} alunos</div>
+            <div class="turma-info-row"><i class="fas fa-money-bill-wave"></i> {{ number_format($turma->propina_mensal, 2, ',', ' ') }} Xof × {{ $turma->meses_pagamento }} {{ $turma->meses_pagamento === 1 ? 'mês' : 'meses' }}/ano</div>
             <div class="turma-info-row">
                 <i class="fas fa-chalkboard-teacher"></i>
                 @if($turma->professorResponsavel)

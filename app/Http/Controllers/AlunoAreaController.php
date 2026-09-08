@@ -38,7 +38,19 @@ class AlunoAreaController extends Controller
         $totalPago = $pagamentos->where('status', 'pago')->sum('valor');
         $totalPendente = $pagamentos->whereIn('status', ['pendente', 'atrasado'])->sum('valor');
 
-        return view('aluno.pagamentos', compact('pagamentos', 'meses', 'totalPago', 'totalPendente'));
+        $ano = now()->year;
+        $propinaMensal = (float) ($user->turma?->propina_mensal ?? 0);
+        $totalAno = (float) ($user->turma?->propina_anual ?? 0);
+        $pagoAno = $pagamentos->where('ano', $ano)->where('status', 'pago')->sum('valor');
+
+        $resumoAno = [
+            'totalAno' => $totalAno,
+            'pago' => $pagoAno,
+            'restante' => max($totalAno - $pagoAno, 0),
+            'percentagem' => $totalAno > 0 ? round(min(($pagoAno / $totalAno) * 100, 100), 1) : 0,
+        ];
+
+        return view('aluno.pagamentos', compact('pagamentos', 'meses', 'totalPago', 'totalPendente', 'resumoAno', 'ano'));
     }
 
     public function presencas()

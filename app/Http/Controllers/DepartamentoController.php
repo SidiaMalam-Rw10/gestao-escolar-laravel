@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Departamento;
 use App\Models\User;
+use App\Models\Atividade;
 use Illuminate\Http\Request;
 
 class DepartamentoController extends Controller
@@ -50,7 +51,9 @@ class DepartamentoController extends Controller
 
         $validated['is_active'] = true;
 
-        Departamento::create($validated);
+        $departamento = Departamento::create($validated);
+
+        Atividade::registar('create', "Criou o departamento '{$departamento->nome}'", null, Departamento::class, $departamento->id, ['sigla' => $departamento->sigla]);
 
         return redirect()->route('admin.departamentos.index')->with('success', 'Departamento criado com sucesso!');
     }
@@ -82,12 +85,16 @@ class DepartamentoController extends Controller
 
         $departamento->update($validated);
 
+        Atividade::registar('update', "Atualizou o departamento '{$departamento->nome}'", null, Departamento::class, $departamento->id, ['is_active' => $departamento->is_active]);
+
         return redirect()->route('admin.departamentos.index')->with('success', 'Departamento atualizado com sucesso!');
     }
 
     public function destroy(Departamento $departamento)
     {
+        $nome = $departamento->nome;
         $departamento->delete();
+        Atividade::registar('delete', "Eliminou o departamento '{$nome}'", null, Departamento::class, $departamento->id);
 
         return redirect()->route('admin.departamentos.index')->with('success', 'Departamento eliminado com sucesso!');
     }

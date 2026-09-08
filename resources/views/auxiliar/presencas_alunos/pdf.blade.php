@@ -98,7 +98,7 @@
 <body>
     <div class="header">
         <div class="brand">
-            MiScool
+            {{ \App\Models\Configuracao::nome() }}
             <small>By We-Tech · Gestão Escolar</small>
         </div>
         <div class="meta">
@@ -184,7 +184,7 @@
     @endif
 
     <div class="footer">
-        <span>MiScool · Gestão Escolar</span>
+        <span>{{ \App\Models\Configuracao::nome() }} · Gestão Escolar</span>
         <span>Relatório de Faltas dos Alunos</span>
     </div>
 </body>

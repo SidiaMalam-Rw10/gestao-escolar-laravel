@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\Encarregado;
+use App\Models\Atividade;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
@@ -141,6 +142,8 @@ class EncarregadoController extends Controller
         $encarregado = Encarregado::create($validated);
         $this->criarContaAcesso($encarregado, $request);
 
+        Atividade::registar('create', "Criou o encarregado '{$encarregado->nome}'", null, Encarregado::class, $encarregado->id, ['telemovel' => $encarregado->telemovel, 'conta_acesso' => $encarregado->user ? 'sim' : 'nao']);
+
         $mensagem = $encarregado->user
             ? 'Encarregado de educação criado com conta de acesso!'
             : 'Encarregado de educação criado com sucesso!';
@@ -167,6 +170,8 @@ class EncarregadoController extends Controller
         $encarregado->update($validated);
         $this->atualizarContaAcesso($encarregado, $request);
 
+        Atividade::registar('update', "Atualizou o encarregado '{$encarregado->nome}'", null, Encarregado::class, $encarregado->id, ['remover_acesso' => $request->boolean('remover_acesso')]);
+
         $mensagem = $request->boolean('remover_acesso')
             ? 'Encarregado atualizado e acesso removido!'
             : 'Encarregado de educação atualizado com sucesso!';
@@ -177,6 +182,7 @@ class EncarregadoController extends Controller
     public function destroy(Encarregado $encarregado)
     {
         // Desassocia todos os alunos antes de eliminar
+        $nome = $encarregado->nome;
         User::where('encarregado_id', $encarregado->id)->update(['encarregado_id' => null]);
 
         $utilizador = $encarregado->user;
@@ -185,6 +191,8 @@ class EncarregadoController extends Controller
         } else {
             $encarregado->delete();
         }
+
+        Atividade::registar('delete', "Eliminou o encarregado '{$nome}'", null, Encarregado::class, $encarregado->id);
 
         return redirect()->route('admin.encarregados.index')->with('success', 'Encarregado de educação eliminado com sucesso!');
     }
@@ -203,6 +211,8 @@ class EncarregadoController extends Controller
 
         $aluno->update(['encarregado_id' => $encarregado->id]);
 
+        Atividade::registar('update', "Associou o aluno '{$aluno->name}' ao encarregado '{$encarregado->nome}'", null, User::class, $aluno->id, ['encarregado_id' => $encarregado->id]);
+
         return back()->with('success', 'Aluno associado ao encarregado com sucesso!');
     }
 
@@ -211,6 +221,8 @@ class EncarregadoController extends Controller
         if ($aluno->encarregado_id === $encarregado->id) {
             $aluno->update(['encarregado_id' => null]);
         }
+
+        Atividade::registar('update', "Desassociou o aluno '{$aluno->name}' do encarregado '{$encarregado->nome}'", null, User::class, $aluno->id);
 
         return back()->with('success', 'Aluno desassociado do encarregado!');
     }
@@ -261,7 +273,19 @@ class EncarregadoController extends Controller
         $totalPago = $pagamentos->where('status', 'pago')->sum('valor');
         $totalPendente = $pagamentos->whereIn('status', ['pendente', 'atrasado'])->sum('valor');
 
-        return view('encarregados.filho_pagamentos', compact('aluno', 'filhos', 'pagamentos', 'meses', 'totalPago', 'totalPendente'));
+        $ano = now()->year;
+        $propinaMensal = (float) ($aluno->turma?->propina_mensal ?? 0);
+        $totalAno = (float) ($aluno->turma?->propina_anual ?? 0);
+        $pagoAno = $pagamentos->where('ano', $ano)->where('status', 'pago')->sum('valor');
+
+        $resumoAno = [
+            'totalAno' => $totalAno,
+            'pago' => $pagoAno,
+            'restante' => max($totalAno - $pagoAno, 0),
+            'percentagem' => $totalAno > 0 ? round(min(($pagoAno / $totalAno) * 100, 100), 1) : 0,
+        ];
+
+        return view('encarregados.filho_pagamentos', compact('aluno', 'filhos', 'pagamentos', 'meses', 'totalPago', 'totalPendente', 'resumoAno', 'ano'));
     }
 
     public function filhoPresencas(User $aluno)

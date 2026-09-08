@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Horario;
 use App\Models\Turma;
 use App\Models\User;
+use App\Models\Atividade;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -41,6 +42,8 @@ class HorarioController extends Controller
 
         $turma->horarios()->create($validated);
 
+        Atividade::registar('create', "Adicionou a aula '{$validated['disciplina']}' ao horário da turma '{$turma->nome_turma}' ({$validated['dia_semana']} {$validated['hora_inicio']}-{$validated['hora_fim']})");
+
         return redirect()->route('admin.horarios.turma', $turma)
             ->with('success', 'Aula adicionada ao horário da turma ' . $turma->nome_turma . '!');
     }
@@ -60,7 +63,9 @@ class HorarioController extends Controller
         $validated = $this->validarAula($request, true);
         $validated['professor_id'] = $professor->id;
 
-        Horario::create($validated);
+        $horario = Horario::create($validated);
+
+        Atividade::registar('create', "Adicionou a aula '{$horario->disciplina}' ao horário do professor '{$professor->name}' ({$horario->dia_semana} {$horario->hora_inicio}-{$horario->hora_fim})", null, Horario::class, $horario->id);
 
         return redirect()->route('admin.horarios.professor', $professor)
             ->with('success', 'Aula adicionada ao horário do(a) ' . $professor->name . '!');
@@ -68,7 +73,9 @@ class HorarioController extends Controller
 
     public function destroy(Horario $horario)
     {
+        $aula = $horario->disciplina . ' (' . $horario->dia_semana . ' ' . $horario->hora_inicio . '-' . $horario->hora_fim . ')';
         $horario->delete();
+        Atividade::registar('delete', "Removeu a aula '{$aula}' do horário");
 
         return back()->with('success', 'Aula removida do horário.');
     }

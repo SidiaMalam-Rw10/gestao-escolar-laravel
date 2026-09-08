@@ -55,6 +55,17 @@
                     <option value="{{ $prof->id }}" {{ old('professor_responsavel_id', $turma->professor_responsavel_id) == $prof->id ? 'selected' : '' }}>{{ $prof->name }}</option>
                     @endforeach
                 </select></div>
+            <div class="form-group full-width"><label class="form-label">Propina Mensal (Xof)</label>
+                <input type="number" name="propina_mensal" value="{{ old('propina_mensal', $turma->propina_mensal) }}" min="0" step="0.01" class="form-input">
+            </div>
+            <div class="form-group full-width"><label class="form-label">Meses de pagamento por ano</label>
+                <select name="meses_pagamento" class="form-select">
+                    @for($m = 1; $m <= 12; $m++)
+                    <option value="{{ $m }}" {{ old('meses_pagamento', $turma->meses_pagamento) == $m ? 'selected' : '' }}>{{ $m }} {{ $m === 1 ? 'mês' : 'meses' }}</option>
+                    @endfor
+                </select>
+                <small style="color:var(--text-secondary)">Nº de mensalidades cobradas num ano letivo (ex.: 9, 10 ou 12).</small>
+            </div>
         </div>
 
         <div class="form-actions">

@@ -15,7 +15,24 @@ class Turma extends Model
         'ano_lectivo',
         'professor_responsavel_id',
         'capacidade',
+        'propina_mensal',
+        'meses_pagamento',
     ];
+
+    protected $casts = [
+        'propina_mensal' => 'decimal:2',
+        'meses_pagamento' => 'integer',
+    ];
+
+    public function getMesesPagamentoAttribute($value): int
+    {
+        return (int) ($value ?: 12);
+    }
+
+    public function getPropinaAnualAttribute(): float
+    {
+        return (float) $this->propina_mensal * $this->meses_pagamento;
+    }
 
     public function professorResponsavel(): BelongsTo
     {

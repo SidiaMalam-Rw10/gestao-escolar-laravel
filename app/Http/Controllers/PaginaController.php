@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Pagina;
+use App\Models\Atividade;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Storage;
@@ -45,7 +46,9 @@ class PaginaController extends Controller
             $dados['video_path'] = $request->file('video')->store('paginas', 'public');
         }
 
-        Pagina::create($dados);
+        $pagina = Pagina::create($dados);
+
+        Atividade::registar('create', "Criou a página '{$pagina->titulo}'", null, Pagina::class, $pagina->id);
 
         return redirect()->route('admin.paginas.index')->with('success', 'Página criada com sucesso!');
     }
@@ -90,6 +93,8 @@ class PaginaController extends Controller
 
         $pagina->update($dados);
 
+        Atividade::registar('update', "Atualizou a página '{$pagina->titulo}'", null, Pagina::class, $pagina->id);
+
         return redirect()->route('admin.paginas.index')->with('success', 'Página atualizada com sucesso!');
     }
 
@@ -103,7 +108,10 @@ class PaginaController extends Controller
             Storage::disk('public')->delete($pagina->video_path);
         }
 
+        $titulo = $pagina->titulo;
         $pagina->delete();
+
+        Atividade::registar('delete', "Eliminou a página '{$titulo}'", null, Pagina::class, $pagina->id);
 
         return redirect()->route('admin.paginas.index')->with('success', 'Página eliminada com sucesso!');
     }

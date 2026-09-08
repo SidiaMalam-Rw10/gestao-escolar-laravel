@@ -114,6 +114,14 @@ class User extends Authenticatable
         });
     }
 
+    public function mensagensNaoLidas()
+    {
+        return Mensagem::whereHas('destinatarios', function ($q) {
+            $q->where('mensagem_destinatarios.destinatario_id', $this->id)
+              ->where('mensagem_destinatarios.lida', false);
+        });
+    }
+
     public function notas()
     {
         return $this->hasMany(Nota::class, 'aluno_id');
@@ -236,12 +244,17 @@ class User extends Authenticatable
 
     public function isDiretor()
     {
-        return $this->hasRole('diretor') || $this->hasRole('pctp');
+        return $this->hasRole('diretor') || $this->hasRole('pctp') || $this->hasRole('proprietario');
     }
 
     public function isPctp()
     {
         return $this->hasRole('pctp');
+    }
+
+    public function isProprietario()
+    {
+        return $this->hasRole('proprietario');
     }
 
     public function isFinanceiro()
@@ -272,5 +285,15 @@ class User extends Authenticatable
     public function isFuncionario()
     {
         return $this->hasRole('funcionario');
+    }
+
+    public function fotoUrl(): ?string
+    {
+        return $this->foto ? asset('storage/' . $this->foto) : null;
+    }
+
+    public function inicial(): string
+    {
+        return strtoupper(mb_substr($this->name, 0, 1));
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Atividade;
 use Illuminate\Http\Request;
 
 class DiretorSalarioController extends Controller
@@ -66,6 +67,8 @@ class DiretorSalarioController extends Controller
             'salario_base' => $validated['salario_base'] !== null ? $validated['salario_base'] : null,
             'desconto_por_falta' => $validated['desconto_por_falta'] !== null ? $validated['desconto_por_falta'] : null,
         ]);
+
+        Atividade::registar('update', "Atualizou o salário do professor '{$professor->name}' (salário base: " . number_format((float) $professor->salario_base, 0, ',', ' ') . " Xof, desconto por falta: " . number_format((float) $professor->desconto_por_falta, 2, ',', ' ') . " Xof)", null, User::class, $professor->id, ['salario_base' => $professor->salario_base, 'desconto_por_falta' => $professor->desconto_por_falta]);
 
         return back()->with('success', 'Salário de ' . $professor->name . ' atualizado com sucesso!');
     }

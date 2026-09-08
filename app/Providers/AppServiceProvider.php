@@ -25,15 +25,19 @@ class AppServiceProvider extends ServiceProvider
         });
 
         \Illuminate\Support\Facades\Gate::define('diretor', function ($user) {
-            return $user->hasRole('diretor') || $user->hasRole('pctp');
+            return $user->hasRole('diretor') || $user->hasRole('pctp') || $user->hasRole('proprietario');
         });
 
         \Illuminate\Support\Facades\Gate::define('ver_salarios', function ($user) {
-            return $user->isAdmin() || $user->isDiretor() || $user->isFinanceiro();
+            return $user->isDiretor() || $user->isFinanceiro();
         });
 
         \Illuminate\Support\Facades\Gate::define('gerir_salarios', function ($user) {
-            return $user->isAdmin() || $user->isDiretor();
+            return $user->isDiretor();
+        });
+
+        \Illuminate\Support\Facades\Gate::define('ver_pagamentos', function ($user) {
+            return $user->isFinanceiro() || $user->isAdmin() || $user->isDiretor();
         });
 
         \Illuminate\Support\Facades\Gate::define('financeiro', function ($user) {
@@ -68,9 +72,21 @@ class AppServiceProvider extends ServiceProvider
             return $user->isAdmin() || $user->isDiretor();
         });
 
+        \Illuminate\Support\Facades\Gate::define('gerir_eventos', function ($user) {
+            return $user->isAdmin() || $user->isDiretor();
+        });
+
+        \Illuminate\Support\Facades\Gate::define('gerir_ficheiros', function ($user) {
+            return $user->isAdmin() || $user->isDiretor() || $user->isProfessor();
+        });
+
+        \Illuminate\Support\Facades\Gate::define('gerir_configuracoes', function ($user) {
+            return $user->isAdmin() || $user->isDiretor();
+        });
+
         \Illuminate\Support\Facades\Gate::define('consultar', function ($user) {
-            return in_array($user->role, ['admin', 'diretor', 'financeiro', 'auxiliar', 'pctp', 'funcionario'])
-                || array_intersect($user->roles ?? [], ['admin', 'diretor', 'financeiro', 'auxiliar', 'pctp', 'funcionario']);
+            return in_array($user->role, ['admin', 'diretor', 'financeiro', 'auxiliar', 'pctp', 'funcionario', 'proprietario'])
+                || array_intersect($user->roles ?? [], ['admin', 'diretor', 'financeiro', 'auxiliar', 'pctp', 'funcionario', 'proprietario']);
         });
 
         // Sino de notificações de avisos (layout partilhado)
@@ -89,7 +105,8 @@ class AppServiceProvider extends ServiceProvider
 
                 $view->with('notifAvisos', $avisos)
                     ->with('notifAvisosLidosIds', $lidosIds)
-                    ->with('notifAvisosNaoLidos', $avisos->whereNotIn('id', $lidosIds)->count());
+                    ->with('notifAvisosNaoLidos', $avisos->whereNotIn('id', $lidosIds)->count())
+                    ->with('notifMensagensNaoLidas', $user->mensagensNaoLidas()->count());
             }
         });
     }

@@ -1,4 +1,5 @@
 @extends('layouts.app')
+@php use App\Models\Configuracao; @endphp
 
 @section('title', 'Nova Turma')
 @section('page-title', 'Criar Turma')
@@ -48,7 +49,7 @@
                 <input type="number" name="ano_lectivo" value="{{ old('ano_lectivo', date('Y')) }}" min="2020" max="2030" class="form-input @error('ano_lectivo') is-invalid @enderror" required>
                 @error('ano_lectivo')<div class="form-error">{{ $message }}</div>@enderror</div>
             <div class="form-group"><label class="form-label">Capacidade</label>
-                <input type="number" name="capacidade" value="{{ old('capacidade', 40) }}" min="1" max="100" class="form-input"></div>
+                <input type="number" name="capacidade" value="{{ old('capacidade', Configuracao::obter('sistema.turmas_limite_alunos', 40)) }}" min="1" max="100" class="form-input"></div>
             <div class="form-group full-width"><label class="form-label">Professor Responsável</label>
                 <select name="professor_responsavel_id" class="form-select">
                     <option value="">Selecionar professor...</option>
@@ -56,6 +57,18 @@
                     <option value="{{ $prof->id }}" {{ old('professor_responsavel_id') == $prof->id ? 'selected' : '' }}>{{ $prof->name }}</option>
                     @endforeach
                 </select></div>
+            <div class="form-group full-width"><label class="form-label">Propina Mensal (Xof)</label>
+                <input type="number" name="propina_mensal" value="{{ old('propina_mensal', 0) }}" min="0" step="0.01" class="form-input">
+                <small style="color:var(--text-secondary)">Valor que cada aluno paga por mês (para cálculos de propina).</small>
+            </div>
+            <div class="form-group full-width"><label class="form-label">Meses de pagamento por ano</label>
+                <select name="meses_pagamento" class="form-select">
+                    @for($m = 1; $m <= 12; $m++)
+                    <option value="{{ $m }}" {{ old('meses_pagamento', 12) == $m ? 'selected' : '' }}>{{ $m }} {{ $m === 1 ? 'mês' : 'meses' }}</option>
+                    @endfor
+                </select>
+                <small style="color:var(--text-secondary)">Nº de mensalidades cobradas num ano letivo (ex.: 9, 10 ou 12).</small>
+            </div>
         </div>
 
         <div class="form-actions">

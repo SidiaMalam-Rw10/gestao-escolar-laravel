@@ -1,4 +1,5 @@
 @extends('layouts.app')
+@php use App\Models\Configuracao; @endphp
 
 @section('title', 'Dashboard')
 @section('page-title', 'Dashboard')
@@ -577,17 +578,31 @@
     </div>
 </div>
 
-@if(auth()->user()->isAdmin() || auth()->user()->isDiretor())
+@if(auth()->user()->isAdmin() || auth()->user()->isDiretor() || auth()->user()->isFinanceiro())
 <!-- Chart -->
 <div class="chart-card">
     <div class="chart-header">
         <div>
             <div class="chart-title">Gráfico de progresso</div>
+            <div class="chart-subtitle">Receitas do ano {{ date('Y') }} por mês (Xof)</div>
         </div>
-        <div class="chart-subtitle">Total de gráfico de progresso</div>
     </div>
-    <div class="chart-placeholder">
-        gráfico de progresso vazio
+    @php
+        $meses = [1 => 'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+        $maxReceita = max($receitasMes->values()->all()) > 0 ? max($receitasMes->values()->all()) : 1;
+    @endphp
+    <div style="display: flex; align-items: flex-end; gap: 6px; height: 180px; padding: 0 4px;">
+        @foreach($meses as $num => $nome)
+            @php
+                $total = $receitasMes[$num] ?? 0;
+                $altura = round(($total / $maxReceita) * 100, 1);
+            @endphp
+            <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:6px; height:100%; justify-content:flex-end;">
+                <div style="font-size:10px; color:var(--text-secondary);">{{ $total > 0 ? number_format($total, 0, ',', ' ') : '' }}</div>
+                <div style="width:100%; max-width:38px; height:{{ $altura }}%; min-height:{{ $total > 0 ? 4 : 2 }}px; background:{{ $total > 0 ? 'linear-gradient(90deg,#1EA34E,#34D399)' : 'rgba(255,255,255,.08)' }}; border-radius:4px 4px 0 0;" title="{{ $nome }}: {{ number_format($total, 0, ',', ' ') }} Xof"></div>
+                <div style="font-size:10px; color:var(--text-secondary);">{{ $nome }}</div>
+            </div>
+        @endforeach
     </div>
 </div>
 
@@ -622,7 +637,13 @@
 
     <div class="card">
         <div class="card-header">Presenças</div>
-        <div class="card-value">95<span style="font-size: 16px; color: var(--text-secondary);">%</span></div>
+        <div class="card-value" style="color: {{ $taxaAssiduidade !== null && $taxaAssiduidade >= 75 ? 'var(--accent-green)' : ($taxaAssiduidade !== null && $taxaAssiduidade >= 50 ? '#FCD34D' : 'var(--text-primary)') }};">
+            @if($taxaAssiduidade !== null)
+                {{ number_format($taxaAssiduidade, 1) }}<span style="font-size: 16px; color: var(--text-secondary);">%</span>
+            @else
+                --
+            @endif
+        </div>
         <div class="card-icon" style="color: #60A5FA;">
             <i class="fas fa-user-check"></i>
         </div>
@@ -630,7 +651,7 @@
 
     <div class="card">
         <div class="card-header">Pendências</div>
-        <div class="card-value">2</div>
+        <div class="card-value" style="color: {{ $pendencias > 0 ? '#FB923C' : 'var(--accent-green)' }};">{{ $pendencias }}</div>
         <div class="card-icon" style="color: #FB923C;">
             <i class="fas fa-exclamation-circle"></i>
         </div>
@@ -891,7 +912,7 @@
             <div class="list-row">
                 <div>
                     <div style="font-size:13px;font-weight:600;">{{ $alerta->filho->name }}</div>
-                    <div style="font-size:11px;color:var(--text-secondary);">{{ $alerta->mes }} · {{ number_format($alerta->valor, 2, ',', ' ') }} Kz</div>
+                    <div style="font-size:11px;color:var(--text-secondary);">{{ $alerta->mes }} · {{ number_format($alerta->valor, 2, ',', ' ') }} {{ Configuracao::obter('escola.moeda', 'Xof') }}</div>
                 </div>
                 <div style="display:flex;align-items:center;gap:10px">
                     <span class="tag {{ $alerta->status === 'atrasado' ? 'tag-aluno' : 'tag-blue' }}">{{ $alerta->status === 'atrasado' ? 'Atrasado' : 'Pendente' }}</span>

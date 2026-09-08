@@ -16,6 +16,8 @@ class Pagamento extends Model
         'status',
         'metodo_pagamento',
         'observacoes',
+        'recibo_numero',
+        'registrado_por',
     ];
 
     protected $casts = [
@@ -26,5 +28,19 @@ class Pagamento extends Model
     public function aluno(): BelongsTo
     {
         return $this->belongsTo(User::class, 'aluno_id');
+    }
+
+    public function registrador(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'registrado_por');
+    }
+
+    public function getStatusLabelAttribute(): string
+    {
+        return match ($this->status) {
+            'pago' => 'Pago',
+            'atrasado' => 'Atrasado',
+            default => 'Pendente',
+        };
     }
 }

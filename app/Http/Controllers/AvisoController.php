@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Aviso;
 use App\Models\Turma;
 use App\Models\User;
+use App\Models\Atividade;
 use Illuminate\Http\Request;
 
 class AvisoController extends Controller
@@ -55,7 +56,9 @@ class AvisoController extends Controller
         $validated['turma_id'] = $validated['turma_id'] ?? null;
         $validated['destinatario_id'] = $validated['destinatario_id'] ?? null;
 
-        Aviso::create($validated);
+        $aviso = Aviso::create($validated);
+
+        Atividade::registar('create', "Publicou o aviso '{$aviso->titulo}' (para: {$aviso->destinatario_tipo})", null, Aviso::class, $aviso->id, ['destinatario_tipo' => $aviso->destinatario_tipo, 'turma_id' => $aviso->turma_id, 'destinatario_id' => $aviso->destinatario_id]);
 
         return redirect()->route('admin.avisos.index')->with('success', 'Aviso publicado com sucesso!');
     }
@@ -96,7 +99,9 @@ class AvisoController extends Controller
 
     public function destroy(Aviso $aviso)
     {
+        $titulo = $aviso->titulo;
         $aviso->delete();
+        Atividade::registar('delete', "Eliminou o aviso '{$titulo}'", null, Aviso::class, $aviso->id);
         return redirect()->route('admin.avisos.index')->with('success', 'Aviso eliminado com sucesso!');
     }
 }

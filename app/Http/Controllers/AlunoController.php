@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Models\Turma;
 use App\Models\Encarregado;
+use App\Models\Atividade;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
@@ -77,7 +78,9 @@ class AlunoController extends Controller
         $validated['role'] = 'aluno';
         $validated['is_active'] = true;
 
-        User::create($validated);
+        $aluno = User::create($validated);
+
+        Atividade::registar('create', "Criou o aluno '{$aluno->name}'", null, User::class, $aluno->id, ['username' => $aluno->username, 'turma_id' => $aluno->turma_id]);
 
         return redirect()->route('admin.alunos.index')->with('success', 'Aluno criado com sucesso!');
     }
@@ -126,12 +129,15 @@ class AlunoController extends Controller
 
         $aluno->update($validated);
 
+        Atividade::registar('update', "Atualizou o aluno '{$aluno->name}'", null, User::class, $aluno->id);
+
         return redirect()->route('admin.alunos.index')->with('success', 'Aluno atualizado com sucesso!');
     }
 
     public function destroy(User $aluno)
     {
         $aluno->delete();
+        Atividade::registar('delete', "Eliminou o aluno '{$aluno->name}'", null, User::class, $aluno->id);
         return redirect()->route('admin.alunos.index')->with('success', 'Aluno eliminado com sucesso!');
     }
 
@@ -139,6 +145,8 @@ class AlunoController extends Controller
     {
         $aluno->update(['is_active' => !$aluno->is_active]);
         $status = $aluno->is_active ? 'ativado' : 'desativado';
+        $verbo = $aluno->is_active ? 'Ativou' : 'Desativou';
+        Atividade::registar('update', "{$verbo} o aluno '{$aluno->name}'", null, User::class, $aluno->id, ['is_active' => $aluno->is_active]);
         return back()->with('success', "Aluno {$status} com sucesso!");
     }
 }

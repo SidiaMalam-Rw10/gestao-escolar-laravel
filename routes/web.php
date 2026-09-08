@@ -20,6 +20,13 @@ use App\Http\Controllers\AuxiliarPresencaController;
 use App\Http\Controllers\AuxiliarAlunoPresencaController;
 use App\Http\Controllers\DiretorSalarioController;
 use App\Http\Controllers\FeedbackController;
+use App\Http\Controllers\FinanceiroController;
+use App\Http\Controllers\AtividadeController;
+use App\Http\Controllers\EventoController;
+use App\Http\Controllers\FicheiroController;
+use App\Http\Controllers\MensagemController;
+use App\Http\Controllers\PerfilController;
+use App\Http\Controllers\ConfiguracaoController;
 
 // Redirecionamento da raiz para login
 Route::get('/', function () {
@@ -118,6 +125,8 @@ Route::middleware('auth')->group(function () {
         Route::get('horarios/professor/{professor}', [HorarioController::class, 'professor'])->name('horarios.professor');
         Route::post('horarios/professor/{professor}', [HorarioController::class, 'professorStore'])->name('horarios.professor.store');
         Route::delete('horarios/{horario}', [HorarioController::class, 'destroy'])->name('horarios.destroy');
+
+        Route::get('atividades', [AtividadeController::class, 'index'])->name('atividades.index');
     });
 
     // Rotas de consulta (admin, diretor, financeiro, auxiliar) - apenas leitura
@@ -150,7 +159,22 @@ Route::middleware('auth')->group(function () {
     
     // Rotas Financeiro
     Route::middleware('can:financeiro')->prefix('financeiro')->name('financeiro.')->group(function () {
-        // Adicionar rotas financeiras aqui
+        Route::get('pagamentos/criar', [FinanceiroController::class, 'create'])->name('pagamentos.create');
+        Route::post('pagamentos', [FinanceiroController::class, 'store'])->name('pagamentos.store');
+    });
+
+    // Pagamentos/Relatórios/Recibos - financeiro, admin e diretor (leitura)
+    Route::middleware('can:ver_pagamentos')->prefix('financeiro')->name('financeiro.')->group(function () {
+        Route::get('pagamentos', [FinanceiroController::class, 'index'])->name('pagamentos.index');
+        Route::get('pagamentos/{pagamento}/recibo', [FinanceiroController::class, 'recibo'])->name('pagamentos.recibo');
+        Route::get('pagamentos/{pagamento}/recibo/pdf', [FinanceiroController::class, 'reciboPdf'])->name('pagamentos.recibo.pdf');
+        Route::get('relatorios', [FinanceiroController::class, 'relatorios'])->name('relatorios');
+    });
+
+    // Recibos acessíveis ao aluno/encarregado (financeiro/diretor/admin incluídos)
+    Route::middleware('auth')->prefix('recibos')->name('recibos.')->group(function () {
+        Route::get('{pagamento}', [FinanceiroController::class, 'recibo'])->name('show');
+        Route::get('{pagamento}/pdf', [FinanceiroController::class, 'reciboPdf'])->name('pdf');
     });
     
     // Rotas Professor
@@ -201,6 +225,52 @@ Route::middleware('auth')->group(function () {
         Route::get('avisos/create', [AvisoController::class, 'create'])->name('avisos.create');
         Route::post('avisos', [AvisoController::class, 'store'])->name('avisos.store');
         Route::delete('avisos/{aviso}', [AvisoController::class, 'destroy'])->name('avisos.destroy');
+    });
+
+    // Calendário de atividades - todos autenticados visualizam
+    Route::get('/calendario', [EventoController::class, 'index'])->name('calendario.index');
+
+    // Gestão de eventos do calendário (admin e diretor/PCTP)
+    Route::middleware('can:gerir_eventos')->prefix('admin')->name('admin.')->group(function () {
+        Route::get('eventos/create', [EventoController::class, 'create'])->name('eventos.create');
+        Route::post('eventos', [EventoController::class, 'store'])->name('eventos.store');
+        Route::get('eventos/{evento}/edit', [EventoController::class, 'edit'])->name('eventos.edit');
+        Route::put('eventos/{evento}', [EventoController::class, 'update'])->name('eventos.update');
+        Route::delete('eventos/{evento}', [EventoController::class, 'destroy'])->name('eventos.destroy');
+    });
+
+    // Biblioteca de ficheiros - todos autenticados visualizam e descarregam
+    Route::get('/ficheiros', [FicheiroController::class, 'index'])->name('ficheiros.index');
+    Route::get('/ficheiros/{ficheiro}/download', [FicheiroController::class, 'download'])->name('ficheiros.download');
+
+    // Gestão de ficheiros (admin, diretor/PCTP e professor)
+    Route::middleware('can:gerir_ficheiros')->prefix('admin')->name('admin.')->group(function () {
+        Route::get('ficheiros/create', [FicheiroController::class, 'create'])->name('ficheiros.create');
+        Route::post('ficheiros', [FicheiroController::class, 'store'])->name('ficheiros.store');
+        Route::delete('ficheiros/{ficheiro}', [FicheiroController::class, 'destroy'])->name('ficheiros.destroy');
+    });
+
+    // Inbox - mensagens internas (todos os autenticados)
+    Route::prefix('inbox')->name('inbox.')->group(function () {
+        Route::get('/', [MensagemController::class, 'index'])->name('index');
+        Route::get('/nova', [MensagemController::class, 'create'])->name('create');
+        Route::post('/', [MensagemController::class, 'store'])->name('store');
+        Route::get('/{mensagem}', [MensagemController::class, 'show'])->name('show');
+        Route::delete('/{mensagem}', [MensagemController::class, 'destroy'])->name('destroy');
+    });
+
+    // Perfil do utilizador autenticado
+    Route::prefix('perfil')->name('perfil.')->group(function () {
+        Route::get('/', [PerfilController::class, 'index'])->name('index');
+        Route::put('/', [PerfilController::class, 'update'])->name('update');
+        Route::put('/password', [PerfilController::class, 'password'])->name('password');
+        Route::delete('/foto', [PerfilController::class, 'removerFoto'])->name('foto.remover');
+    });
+
+    // Configurações da escola (admin e diretor/PCTP)
+    Route::middleware('can:gerir_configuracoes')->prefix('configuracoes')->name('configuracoes.')->group(function () {
+        Route::get('/', [ConfiguracaoController::class, 'index'])->name('index');
+        Route::put('/', [ConfiguracaoController::class, 'update'])->name('update');
     });
 });
 
