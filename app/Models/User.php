@@ -29,6 +29,7 @@ use Illuminate\Notifications\Notifiable;
     'nivel',
     'ano_lectivo',
     'is_active',
+    'primeiro_login',
     'roles'
 ])]
 #[Hidden(['password', 'remember_token'])]
@@ -48,6 +49,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_active' => 'boolean',
+            'primeiro_login' => 'boolean',
             'roles' => 'array',
             'salario_base' => 'decimal:2',
             'desconto_por_falta' => 'decimal:2',
@@ -244,7 +246,7 @@ class User extends Authenticatable
 
     public function isDiretor()
     {
-        return $this->hasRole('diretor') || $this->hasRole('pctp') || $this->hasRole('proprietario');
+        return $this->hasRole('diretor') || $this->hasRole('pctp');
     }
 
     public function isPctp()

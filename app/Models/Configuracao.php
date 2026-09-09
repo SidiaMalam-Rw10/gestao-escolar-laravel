@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class Configuracao extends Model
 {
@@ -60,6 +61,34 @@ class Configuracao extends Model
     public static function logotipoUrl(): ?string
     {
         return self::logotipo() ? asset('storage/' . self::logotipo()) : null;
+    }
+
+    public static function logotipoPlataformaUrl(): ?string
+    {
+        $caminho = self::obter('plataforma.logotipo', null);
+
+        return $caminho ? asset('storage/' . $caminho) : null;
+    }
+
+    /**
+     * Imagem de fundo da plataforma, lida sempre da base de dados central
+     * (mesmo quando a ligação corrente é a de uma escola).
+     */
+    public static function plataformaFundo(): ?string
+    {
+        $valor = DB::connection('central')
+            ->table('configuracoes')
+            ->where('chave', 'plataforma.fundo')
+            ->value('valor');
+
+        return $valor ? (string) $valor : null;
+    }
+
+    public static function plataformaFundoUrl(): ?string
+    {
+        $caminho = self::plataformaFundo();
+
+        return $caminho ? asset('storage/' . $caminho) : null;
     }
 
     public static function contacto(): array

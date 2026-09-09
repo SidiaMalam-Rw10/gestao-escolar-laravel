@@ -525,7 +525,7 @@
 
 <!-- Welcome Section -->
 <div class="welcome-banner">
-    <img src="{{ asset('Image.jpeg') }}" alt="" class="welcome-bg">
+    <img src="{{ Configuracao::plataformaFundoUrl() ?? asset('Image.jpeg') }}" alt="" class="welcome-bg">
     <div class="welcome-overlay"></div>
     <div class="welcome-content">
         <div class="date-header">{{ strtoupper(\Carbon\Carbon::now()->locale('pt')->isoFormat('dddd, D [de] MMMM [de] YYYY')) }}</div>

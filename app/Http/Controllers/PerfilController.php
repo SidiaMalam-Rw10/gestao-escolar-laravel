@@ -65,7 +65,7 @@ class PerfilController extends Controller
         ]);
 
         $user = auth()->user();
-        $user->update(['password' => Hash::make($validated['password'])]);
+        $user->update(['password' => Hash::make($validated['password']), 'primeiro_login' => false]);
 
         Atividade::registar('update', 'Alterou a sua palavra-passe', $user);
 

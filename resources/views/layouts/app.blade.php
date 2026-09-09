@@ -519,8 +519,8 @@
         <!-- Sidebar -->
         <aside :class="{ 'mobile-open': sidebarOpen }">
             <div class="logo">
-                <div class="logo-icon" style="background:{{ Configuracao::obter('escola.logotipo') ? 'transparent' : 'var(--accent-green)' }}">
-                    <img src="{{ Configuracao::obter('escola.logotipo') ? asset('storage/' . Configuracao::obter('escola.logotipo')) : asset('logo.png') }}" alt="Logo" style="width: 100%; height: 100%; object-fit: contain; border-radius: 4px;">
+                <div class="logo-icon" style="background:{{ Configuracao::obter('plataforma.logotipo') ? 'transparent' : (Configuracao::obter('escola.logotipo') ? 'transparent' : 'var(--accent-green)') }}">
+                    <img src="{{ Configuracao::obter('plataforma.logotipo') ? asset('storage/' . Configuracao::obter('plataforma.logotipo')) : (Configuracao::obter('escola.logotipo') ? asset('storage/' . Configuracao::obter('escola.logotipo')) : asset('logo.png')) }}" alt="Logo" style="width: 100%; height: 100%; object-fit: contain; border-radius: 4px;">
                 </div>
                 <div class="logo-text">
                     <div class="logo-title">{{ Configuracao::obter('escola.nome', 'MiScool') }}</div>
@@ -542,6 +542,7 @@
                     </a>
                 </div>
 
+                @if(!auth()->user()->isProprietario())
                 <div class="nav-section">
                     <div class="nav-title">Comunicação</div>
                     <a href="{{ route('avisos.historico') }}" class="nav-item {{ request()->routeIs('avisos.historico') ? 'active' : '' }}">
@@ -789,6 +790,7 @@
                     </a>
                 </div>
                 @endcan
+                @endif
 
                 @can('dono')
                 <div class="nav-section">
@@ -800,6 +802,14 @@
                     <a href="{{ route('central.escolas.create') }}" class="nav-item {{ request()->routeIs('central.escolas.create') ? 'active' : '' }}">
                         <i class="fas fa-plus-circle"></i>
                         <span>Adicionar escola</span>
+                    </a>
+                    <a href="{{ route('central.usuarios.index') }}" class="nav-item {{ request()->routeIs('central.usuarios.*') ? 'active' : '' }}">
+                        <i class="fas fa-users"></i>
+                        <span>Utilizadores da plataforma</span>
+                    </a>
+                    <a href="{{ route('central.configuracoes.index') }}" class="nav-item {{ request()->routeIs('central.configuracoes.*') ? 'active' : '' }}">
+                        <i class="fas fa-cog"></i>
+                        <span>Configuração</span>
                     </a>
                 </div>
                 @endcan

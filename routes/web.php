@@ -28,6 +28,10 @@ use App\Http\Controllers\MensagemController;
 use App\Http\Controllers\PerfilController;
 use App\Http\Controllers\ConfiguracaoController;
 use App\Http\Controllers\EscolaController;
+use App\Http\Controllers\CentralUserController;
+use App\Http\Controllers\CentralConfiguracaoController;
+use App\Http\Controllers\PasswordResetController;
+use App\Http\Controllers\PrimeiraPasswordController;
 
 // Redirecionamento da raiz para login
 Route::get('/', function () {
@@ -38,6 +42,12 @@ Route::get('/', function () {
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [AuthController::class, 'login']);
+
+    // Recuperação de palavra-passe
+    Route::get('/esquecer-password', [PasswordResetController::class, 'solicitar'])->name('password.request');
+    Route::post('/esquecer-password', [PasswordResetController::class, 'enviarLink'])->name('password.email');
+    Route::get('/reset-password/{token}', [PasswordResetController::class, 'repor'])->name('password.reset');
+    Route::post('/reset-password', [PasswordResetController::class, 'efetuarReposicao'])->name('password.store');
 });
 
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
@@ -50,6 +60,10 @@ Route::get('/avisos', [AvisoController::class, 'historico'])->name('avisos.histo
 
 // Rotas protegidas
 Route::middleware('auth')->group(function () {
+    // Primeiro acesso: definir palavra-passe
+    Route::get('/password/primeira-vez', [PrimeiraPasswordController::class, 'show'])->name('password.primeira');
+    Route::post('/password/primeira-vez', [PrimeiraPasswordController::class, 'alterar'])->name('password.primeira.alterar');
+
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // Páginas informativas (Horário, Atividades, Sobre a Escola) - todos visualizam
@@ -282,6 +296,18 @@ Route::middleware('auth')->group(function () {
         Route::get('escolas/{escola}/editar', [EscolaController::class, 'edit'])->name('escolas.edit');
         Route::put('escolas/{escola}', [EscolaController::class, 'update'])->name('escolas.update');
         Route::delete('escolas/{escola}', [EscolaController::class, 'destroy'])->name('escolas.destroy');
+
+        Route::get('usuarios', [CentralUserController::class, 'index'])->name('usuarios.index');
+        Route::get('usuarios/nova', [CentralUserController::class, 'create'])->name('usuarios.create');
+        Route::post('usuarios', [CentralUserController::class, 'store'])->name('usuarios.store');
+        Route::get('usuarios/{usuario}', [CentralUserController::class, 'show'])->name('usuarios.show');
+        Route::get('usuarios/{usuario}/editar', [CentralUserController::class, 'edit'])->name('usuarios.edit');
+        Route::put('usuarios/{usuario}', [CentralUserController::class, 'update'])->name('usuarios.update');
+        Route::post('usuarios/{usuario}/toggle', [CentralUserController::class, 'toggleAtivo'])->name('usuarios.toggle');
+        Route::delete('usuarios/{usuario}', [CentralUserController::class, 'destroy'])->name('usuarios.destroy');
+
+        Route::get('configuracoes', [CentralConfiguracaoController::class, 'index'])->name('configuracoes.index');
+        Route::put('configuracoes', [CentralConfiguracaoController::class, 'update'])->name('configuracoes.update');
     });
 });
 

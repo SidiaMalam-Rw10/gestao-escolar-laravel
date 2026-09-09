@@ -58,6 +58,7 @@ class EncarregadoController extends Controller
             'email' => $encarregado->email && $this->emailDisponivel($encarregado->email) ? $encarregado->email : null,
             'telefone' => $encarregado->telefone,
             'is_active' => true,
+            'primeiro_login' => true,
         ];
 
         $user = User::create($dados);

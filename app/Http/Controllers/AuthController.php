@@ -33,6 +33,10 @@ class AuthController extends Controller
 
             Atividade::registar('login', 'Início de sessão', Auth::user());
 
+            if (Auth::user()->primeiro_login) {
+                return redirect()->route('password.primeira');
+            }
+
             return redirect()->intended('/dashboard');
         }
 

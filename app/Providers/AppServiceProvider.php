@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\DB;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -25,7 +26,7 @@ class AppServiceProvider extends ServiceProvider
         });
 
         \Illuminate\Support\Facades\Gate::define('diretor', function ($user) {
-            return $user->hasRole('diretor') || $user->hasRole('pctp') || $user->hasRole('proprietario');
+            return $user->hasRole('diretor') || $user->hasRole('pctp');
         });
 
         \Illuminate\Support\Facades\Gate::define('ver_salarios', function ($user) {
@@ -85,12 +86,14 @@ class AppServiceProvider extends ServiceProvider
         });
 
         \Illuminate\Support\Facades\Gate::define('dono', function ($user) {
-            return $user->isProprietario();
+            // Apenas o proprietário da plataforma (BD central) gere as escolas.
+            return $user->isProprietario()
+                && config('database.connections.' . DB::getDefaultConnection() . '.database') === env('DB_DATABASE');
         });
 
         \Illuminate\Support\Facades\Gate::define('consultar', function ($user) {
-            return in_array($user->role, ['admin', 'diretor', 'financeiro', 'auxiliar', 'pctp', 'funcionario', 'proprietario'])
-                || array_intersect($user->roles ?? [], ['admin', 'diretor', 'financeiro', 'auxiliar', 'pctp', 'funcionario', 'proprietario']);
+            return in_array($user->role, ['admin', 'diretor', 'financeiro', 'auxiliar', 'pctp', 'funcionario'])
+                || array_intersect($user->roles ?? [], ['admin', 'diretor', 'financeiro', 'auxiliar', 'pctp', 'funcionario']);
         });
 
         // Sino de notificações de avisos (layout partilhado)

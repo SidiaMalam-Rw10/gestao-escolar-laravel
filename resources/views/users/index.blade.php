@@ -461,7 +461,6 @@
             <option value="">Todas as funções</option>
             <option value="admin" {{ request('role') === 'admin' ? 'selected' : '' }}>Admin</option>
             <option value="diretor" {{ request('role') === 'diretor' ? 'selected' : '' }}>Diretor</option>
-            <option value="proprietario" {{ request('role') === 'proprietario' ? 'selected' : '' }}>Proprietário</option>
             <option value="financeiro" {{ request('role') === 'financeiro' ? 'selected' : '' }}>Financeiro</option>
             <option value="professor" {{ request('role') === 'professor' ? 'selected' : '' }}>Professor</option>
             <option value="aluno" {{ request('role') === 'aluno' ? 'selected' : '' }}>Aluno</option>

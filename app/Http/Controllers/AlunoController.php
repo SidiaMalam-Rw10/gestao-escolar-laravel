@@ -77,6 +77,7 @@ class AlunoController extends Controller
         $validated['password'] = Hash::make($validated['password']);
         $validated['role'] = 'aluno';
         $validated['is_active'] = true;
+        $validated['primeiro_login'] = true;
 
         $aluno = User::create($validated);
 

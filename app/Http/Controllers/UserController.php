@@ -61,9 +61,9 @@ class UserController extends Controller
             'username' => 'required|string|max:255|unique:users,username',
             'email' => 'nullable|email|max:255|unique:users,email',
             'password' => 'required|string|min:6|confirmed',
-            'role' => 'required|in:admin,diretor,financeiro,professor,aluno,auxiliar,pctp,encarregado,funcionario,proprietario',
+            'role' => 'required|in:admin,diretor,financeiro,professor,aluno,auxiliar,pctp,encarregado,funcionario',
             'roles' => 'nullable|array',
-            'roles.*' => 'in:admin,diretor,financeiro,professor,aluno,auxiliar,pctp,encarregado,funcionario,proprietario',
+            'roles.*' => 'in:admin,diretor,financeiro,professor,aluno,auxiliar,pctp,encarregado,funcionario',
             'numero' => [
                 'nullable', 'string', 'max:50',
                 Rule::unique('users', 'numero')->where(fn ($q) => $q->where('turma_id', $request->turma_id)),
@@ -81,6 +81,7 @@ class UserController extends Controller
 
         $validated['password'] = Hash::make($validated['password']);
         $validated['is_active'] = true;
+        $validated['primeiro_login'] = true;
         $validated['roles'] = $request->input('roles', []);
 
         $user = User::create($validated);
@@ -110,9 +111,9 @@ class UserController extends Controller
             'username' => 'required|string|max:255|unique:users,username,' . $user->id,
             'email' => 'nullable|email|max:255|unique:users,email,' . $user->id,
             'password' => 'nullable|string|min:6|confirmed',
-            'role' => 'required|in:admin,diretor,financeiro,professor,aluno,auxiliar,pctp,encarregado,funcionario,proprietario',
+            'role' => 'required|in:admin,diretor,financeiro,professor,aluno,auxiliar,pctp,encarregado,funcionario',
             'roles' => 'nullable|array',
-            'roles.*' => 'in:admin,diretor,financeiro,professor,aluno,auxiliar,pctp,encarregado,funcionario,proprietario',
+            'roles.*' => 'in:admin,diretor,financeiro,professor,aluno,auxiliar,pctp,encarregado,funcionario',
             'numero' => [
                 'nullable', 'string', 'max:50',
                 Rule::unique('users', 'numero')->ignore($user->id)->where(fn ($q) => $q->where('turma_id', $request->turma_id)),

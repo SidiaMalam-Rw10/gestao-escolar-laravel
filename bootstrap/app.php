@@ -14,6 +14,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->prependToGroup('web', \App\Http\Middleware\DeterminarEscola::class);
         $middleware->appendToGroup('web', \App\Http\Middleware\CheckUsuarioAtivo::class);
+        $middleware->appendToGroup('web', \App\Http\Middleware\GarantirPrimeiraPassword::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

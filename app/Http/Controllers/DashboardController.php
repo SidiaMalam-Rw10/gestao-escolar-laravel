@@ -8,12 +8,36 @@ use App\Models\Pagamento;
 use App\Models\Contato;
 use App\Models\Aviso;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
     public function index()
     {
         $user = auth()->user();
+
+        // Plataforma MiScool (dono) — painel próprio, sem dados de escola
+        if ($user->isProprietario()
+            && config('database.connections.' . DB::getDefaultConnection() . '.database') === env('DB_DATABASE')
+        ) {
+            $totalEscolas = \App\Models\Escola::count();
+            $escolasAtivas = \App\Models\Escola::where('ativa', true)->count();
+            $escolasRecentes = \App\Models\Escola::orderByDesc('id')->take(5)->get();
+            $totalUsuariosPlataforma = User::count();
+
+            [$labelsGrafico, $dadosEscolasGrafico] = $this->contagemPorMes(\App\Models\Escola::query());
+            [, $dadosUsuariosGrafico] = $this->contagemPorMes(User::query());
+
+            return view('central.dashboard', compact(
+                'totalEscolas',
+                'escolasAtivas',
+                'escolasRecentes',
+                'totalUsuariosPlataforma',
+                'labelsGrafico',
+                'dadosEscolasGrafico',
+                'dadosUsuariosGrafico'
+            ));
+        }
 
         // Totais gerais visíveis em todos os dashboards
         $data = [
@@ -140,5 +164,32 @@ class DashboardController extends Controller
         }
 
         return view('dashboard', $data);
+    }
+
+    /**
+     * Contagem de registos criados nos últimos 12 meses, para gráficos.
+     *
+     * @return array{0: string[], 1: int[]}
+     */
+    private function contagemPorMes($query): array
+    {
+        $mesesCurtos = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+        $series = [];
+        for ($i = 11; $i >= 0; $i--) {
+            $d = now()->startOfMonth()->subMonths($i);
+            $series[$d->format('Y-m')] = 0;
+        }
+        $porMes = $query->selectRaw("DATE_FORMAT(created_at, '%Y-%m') as mes, COUNT(*) as total")
+            ->where('created_at', '>=', now()->startOfMonth()->subMonths(11))
+            ->groupBy('mes')
+            ->get();
+        foreach ($porMes as $reg) {
+            if (isset($series[$reg->mes])) {
+                $series[$reg->mes] = (int) $reg->total;
+            }
+        }
+        $labels = array_map(fn ($k) => $mesesCurtos[(int) substr($k, 5, 2) - 1], array_keys($series));
+
+        return [$labels, array_values($series)];
     }
 }

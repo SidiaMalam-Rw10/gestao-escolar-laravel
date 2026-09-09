@@ -387,7 +387,6 @@
                     <option value="">Selecionar...</option>
                     <option value="admin" {{ old('role') === 'admin' ? 'selected' : '' }}>Administrador/a</option>
                     <option value="diretor" {{ old('role') === 'diretor' ? 'selected' : '' }}>Diretor/a</option>
-                    <option value="proprietario" {{ old('role') === 'proprietario' ? 'selected' : '' }}>Proprietário do colégio</option>
                     <option value="financeiro" {{ old('role') === 'financeiro' ? 'selected' : '' }}>Financeiro/a</option>
                     <option value="professor" {{ old('role') === 'professor' ? 'selected' : '' }}>Professor/a</option>
                     <option value="aluno" {{ old('role') === 'aluno' ? 'selected' : '' }}>Aluno/a</option>
@@ -407,7 +406,6 @@
                     @foreach([
                         'admin' => 'Administrador/a',
                         'diretor' => 'Diretor/a',
-                        'proprietario' => 'Proprietário',
                         'financeiro' => 'Financeiro/a',
                         'professor' => 'Professor/a',
                         'aluno' => 'Aluno/a',

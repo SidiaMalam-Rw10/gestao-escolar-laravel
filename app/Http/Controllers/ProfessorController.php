@@ -74,6 +74,7 @@ class ProfessorController extends Controller
         $validated['password'] = Hash::make($validated['password']);
         $validated['role'] = 'professor';
         $validated['is_active'] = true;
+        $validated['primeiro_login'] = true;
 
         $professor = User::create($validated);
 

@@ -40,23 +40,6 @@
             width: 100%;
         }
 
-        .login-layout {
-            display: block;
-        }
-
-        .login-image {
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
-        }
-
-        .login-image img {
-            display: block;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
         .login-form-side {
             max-width: 440px;
             width: 100%;
@@ -140,6 +123,7 @@
         .checkbox-group {
             display: flex;
             align-items: center;
+            justify-content: space-between;
             margin-bottom: 24px;
         }
 
@@ -196,45 +180,22 @@
             color: #FCA5A5;
         }
 
-        .test-credentials {
-            margin-top: 24px;
-            padding-top: 24px;
-            border-top: 1px solid var(--border-color);
+        .alert-success {
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            color: #86EFAC;
         }
 
-        .test-credentials-title {
-            text-align: center;
-            font-size: 11px;
+        .forgot-link {
+            font-size: 12px;
             color: var(--text-secondary);
-            margin-bottom: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            font-weight: 600;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
         }
 
-        .credentials-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 8px;
-            font-size: 11px;
-        }
-
-        .credential-item {
-            padding: 10px;
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            text-align: center;
-        }
-
-        .credential-item strong {
-            display: block;
-            color: var(--text-primary);
-            margin-bottom: 2px;
-        }
-
-        .credential-item.full-width {
-            grid-column: span 2;
+        .forgot-link:hover {
+            color: var(--accent-green);
         }
 
         .footer {
@@ -244,45 +205,21 @@
             color: var(--text-secondary);
         }
 
-        @media (max-width: 768px) {
-            .login-layout {
-                grid-template-columns: 1fr;
-                gap: 24px;
-            }
-
-            .login-image {
-                max-height: 260px;
-            }
-        }
-
         @media (max-width: 480px) {
             .login-card {
                 padding: 24px;
-            }
-
-            .credentials-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .credential-item.full-width {
-                grid-column: span 1;
             }
         }
     </style>
 </head>
 <body>
     <div class="login-container">
-        <div class="login-layout">
-            <!-- Imagem -->
-            <!--<div class="login-image">
-                <img src="{{ asset('Image.jpeg') }}" alt="Escola">
-            </div>-->
 
             <!-- Formulário -->
             <div class="login-form-side">
                 <!-- Logo e Título -->
                 <div class="logo-section">
-                    <div class="logo-icon"><img src="{{ \App\Models\Configuracao::logotipoUrl() ?? asset('logo.png') }}" alt="Logo" style="width: 100%; height: 100%; object-fit: contain;"></div>
+                    <div class="logo-icon"><img src="{{ \App\Models\Configuracao::logotipoUrl() ?? \App\Models\Configuracao::logotipoPlataformaUrl() ?? asset('logo.png') }}" alt="Logo" style="width: 100%; height: 100%; object-fit: contain;"></div>
                     <h1 class="logo-title">{{ \App\Models\Configuracao::nome() }}</h1>
                     <p class="logo-subtitle">Faça login para continuar</p>
                 </div>
@@ -297,6 +234,13 @@
                         <div class="alert alert-error">
                             <i class="fas fa-exclamation-circle"></i>
                             <span>{{ $errors->first() }}</span>
+                        </div>
+                        @endif
+
+                        @if(session('status'))
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle"></i>
+                            <span>{{ session('status') }}</span>
                         </div>
                         @endif
 
@@ -328,13 +272,16 @@
                                 class="form-input">
                         </div>
 
-                        <!-- Lembrar-me -->
+                        <!-- Lembrar-me e recuperar palavra-passe -->
                         <div class="checkbox-group">
-                            <input
-                                type="checkbox"
-                                name="remember"
-                                id="remember">
-                            <label for="remember">Lembrar-me</label>
+                            <div style="display: flex; align-items: center;">
+                                <input
+                                    type="checkbox"
+                                    name="remember"
+                                    id="remember">
+                                <label for="remember">Lembrar-me</label>
+                            </div>
+                            <a href="{{ route('password.request') }}" class="forgot-link">Esqueceu a palavra-passe?</a>
                         </div>
 
                         <!-- Botão Login -->
@@ -342,45 +289,13 @@
                             <i class="fas fa-sign-in-alt" style="margin-right: 6px;"></i>Entrar
                         </button>
                     </form>
-
-                    <!-- Informações de Teste -->
-                    <div class="test-credentials">
-                        <p class="test-credentials-title">👤 Credenciais de teste</p>
-                        <div class="credentials-grid">
-                            <div class="credential-item">
-                                <strong>Admin</strong>
-                                <div>admin / admin123</div>
-                            </div>
-                            <div class="credential-item">
-                                <strong>Diretor</strong>
-                                <div>diretor / diretor123</div>
-                            </div>
-                            <div class="credential-item">
-                                <strong>Financeiro</strong>
-                                <div>financeiro / financeiro123</div>
-                            </div>
-                            <div class="credential-item">
-                                <strong>Professor</strong>
-                                <div>prof.carlos / professor123</div>
-                            </div>
-<div class="credential-item">
-                        <strong>Aluno</strong>
-                        <div>pedro.almeida / aluno123</div>
-                    </div>
-                    <div class="credential-item">
-                        <strong>Auxiliar</strong>
-                        <div>auxiliar / auxiliar123</div>
-                    </div>
-                        </div>
-                    </div>
                 </div>
 
                 <!-- Footer -->
                 <p class="footer">
                     © {{ date('Y') }} Sistema de Gestão Escolar
                 </p>
-            </div>
-        </div>
     </div>
+</div>
 </body>
 </html>
