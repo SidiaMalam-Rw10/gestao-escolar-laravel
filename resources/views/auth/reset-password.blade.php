@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Definir nova palavra-passe</title>
+    @include('partials.pwa')
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <style>
         :root { --bg-main: #0B0F0D; --bg-card: #121815; --bg-input: #151D19; --border-color: #1A2420; --text-primary: #ECEFED; --text-secondary: #8A9A92; --accent-green: #22C55E; }
@@ -34,7 +35,7 @@
 <body>
     <div class="auth-card">
         <div class="logo-section">
-            <div class="logo-icon"><img src="{{ \App\Models\Configuracao::logotipoUrl() ?? \App\Models\Configuracao::logotipoPlataformaUrl() ?? asset('logo.png') }}" alt="Logo" style="width: 100%; height: 100%; object-fit: contain;"></div>
+            <div class="logo-icon"><img src="{{ \App\Models\Configuracao::logotipoPlataformaUrl() ?? \App\Models\Configuracao::logotipoUrl() ?? asset('logo.png') }}" alt="Logo" style="width: 100%; height: 100%; object-fit: contain;"></div>
             <h1 class="logo-title">{{ \App\Models\Configuracao::nome() }}</h1>
             <p class="logo-subtitle">Definir nova palavra-passe</p>
         </div>

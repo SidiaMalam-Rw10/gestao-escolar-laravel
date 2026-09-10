@@ -32,11 +32,15 @@ use App\Http\Controllers\CentralUserController;
 use App\Http\Controllers\CentralConfiguracaoController;
 use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\PrimeiraPasswordController;
+use App\Http\Controllers\ManifestController;
 
 // Redirecionamento da raiz para login
 Route::get('/', function () {
     return redirect('/login');
 });
+
+// Manifest PWA (aplicação instalável)
+Route::get('/manifest.webmanifest', [ManifestController::class, 'index']);
 
 // Rotas de autenticação
 Route::middleware('guest')->group(function () {

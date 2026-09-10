@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Models\Turma;
 use App\Models\Atividade;
+use App\Models\Encarregado;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
@@ -85,6 +86,7 @@ class UserController extends Controller
         $validated['roles'] = $request->input('roles', []);
 
         $user = User::create($validated);
+        $this->sincronizarPerfilEncarregado($user);
 
         Atividade::registar('create', "Criou o utilizador '{$user->name}' ({$user->role})", null, User::class, $user->id, ['username' => $user->username, 'roles' => $user->roles]);
 
@@ -140,6 +142,7 @@ class UserController extends Controller
         $validated['roles'] = $request->input('roles', []);
 
         $user->update($validated);
+        $this->sincronizarPerfilEncarregado($user);
 
         Atividade::registar('update', "Atualizou o utilizador '{$user->name}'", null, User::class, $user->id, ['username' => $user->username, 'roles' => $user->roles]);
 
@@ -171,5 +174,48 @@ class UserController extends Controller
         $verbo = $user->is_active ? 'Ativou' : 'Desativou';
         Atividade::registar('update', "{$verbo} o utilizador '{$user->name}'", null, User::class, $user->id, ['is_active' => $user->is_active]);
         return back()->with('success', "Usuário {$status} com sucesso!");
+    }
+
+    /**
+     * Quando um utilizador tem o papel de encarregado (role principal ou função extra),
+     * garante que existe o respetivo registo na tabela "encarregados", para aparecer
+     * na gestão de encarregados de educação e poder ser associado a alunos.
+     */
+    private function sincronizarPerfilEncarregado(User $user): void
+    {
+        if (!$user->hasRole('encarregado')) {
+            return;
+        }
+
+        $perfil = Encarregado::where('user_id', $user->id)->first();
+
+        if ($perfil) {
+            $dados = ['nome' => $user->name];
+            if ($user->email) {
+                $dados['email'] = $user->email;
+            }
+            if ($user->telefone) {
+                $dados['telefone'] = $user->telefone;
+            }
+            if ($user->endereco) {
+                $dados['endereco'] = $user->endereco;
+            }
+            if ($user->genero) {
+                $dados['genero'] = $user->genero;
+            }
+            $perfil->update($dados);
+            $user->unsetRelation('perfilEncarregado');
+            return;
+        }
+
+        Encarregado::create([
+            'user_id' => $user->id,
+            'nome' => $user->name,
+            'email' => $user->email,
+            'telefone' => $user->telefone,
+            'endereco' => $user->endereco,
+            'genero' => $user->genero,
+        ]);
+        $user->unsetRelation('perfilEncarregado');
     }
 }

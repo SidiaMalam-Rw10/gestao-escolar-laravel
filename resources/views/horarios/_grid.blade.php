@@ -4,11 +4,26 @@
     if ($horarios->contains(fn ($a) => $a->dia_semana === 'Sábado')) { $colunasDias[] = 'Sábado'; }
     if ($horarios->contains(fn ($a) => $a->dia_semana === 'Domingo')) { $colunasDias[] = 'Domingo'; }
 
-    $tempos = $horarios
-        ->map(fn ($a) => $a->hora_inicio->format('H:i') . '|' . $a->hora_fim->format('H:i'))
-        ->unique()
-        ->sort()
-        ->values();
+    $usarTempo = $horarios->contains(fn ($a) => $a->tempo !== null);
+    if ($usarTempo) {
+        $tempos = $horarios->pluck('tempo')->filter()->unique()->sort()->values();
+        $linhas = $tempos->map(function ($numero) use ($horarios) {
+            $aulas = $horarios->where('tempo', $numero);
+            $primeira = $aulas->first();
+            return [
+                'numero' => $numero,
+                'entrada' => $primeira?->hora_inicio->format('H:i'),
+                'saida' => $primeira?->hora_fim->format('H:i'),
+            ];
+        });
+    } else {
+        $linhas = $horarios
+            ->map(fn ($a) => ['numero' => null, 'entrada' => $a->hora_inicio->format('H:i'), 'saida' => $a->hora_fim->format('H:i')])
+            ->unique(fn ($l) => $l['entrada'] . '|' . $l['saida'])
+            ->sortBy(fn ($l) => $l['entrada'])
+            ->values()
+            ->map(fn ($l, $indice) => ['numero' => null, 'entrada' => $l['entrada'], 'saida' => $l['saida'], 'rotulo' => $indice + 1]);
+    }
 @endphp
 
 <table>
@@ -23,15 +38,16 @@
         </tr>
     </thead>
     <tbody>
-        @foreach($tempos as $indice => $tempo)
-        @php [$entrada, $saida] = explode('|', $tempo); @endphp
+        @foreach($linhas as $linha)
         <tr>
-            <td>{{ $indice + 1 }}º</td>
-            <td>{{ $entrada }}</td>
-            <td>{{ $saida }}</td>
+            <td>{{ $linha['numero'] ? $linha['numero'] . 'º' : ($linha['rotulo'] ?? '') }}</td>
+            <td>{{ $linha['entrada'] }}</td>
+            <td>{{ $linha['saida'] }}</td>
             @foreach($colunasDias as $dia)
             @php
-                $celulas = $horarios->filter(fn ($a) => $a->dia_semana === $dia && $a->hora_inicio->format('H:i') === $entrada && $a->hora_fim->format('H:i') === $saida)->values();
+                $celulas = $usarTempo
+                    ? $horarios->filter(fn ($a) => $a->dia_semana === $dia && $a->tempo === $linha['numero'])->values()
+                    : $horarios->filter(fn ($a) => $a->dia_semana === $dia && $a->hora_inicio->format('H:i') === $linha['entrada'] && $a->hora_fim->format('H:i') === $linha['saida'])->values();
             @endphp
             <td>
                 @foreach($celulas as $aula)

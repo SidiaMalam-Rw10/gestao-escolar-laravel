@@ -13,6 +13,8 @@ class HorarioController extends Controller
 {
     public const DIAS = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
 
+    public const TEMPOS = [1, 2, 3, 4, 5];
+
     public function index()
     {
         $turmas = Turma::withCount('horarios')->withCount('alunos')->orderBy('nome_turma')->get();
@@ -24,7 +26,7 @@ class HorarioController extends Controller
     public function turma(Turma $turma)
     {
         $horarios = $turma->horarios()->with('professor')->get()
-            ->sortBy(fn ($aula) => [$this->indiceDia($aula->dia_semana), $aula->hora_inicio])
+            ->sortBy(fn ($aula) => [$this->indiceDia($aula->dia_semana), $aula->tempo ?? $this->indiceHora($aula->hora_inicio)])
             ->values();
         $professores = User::professores()->orderBy('name')->get();
 
@@ -51,7 +53,7 @@ class HorarioController extends Controller
     public function professor(User $professor)
     {
         $horarios = $professor->horariosComoProfessor()->with('turma')->get()
-            ->sortBy(fn ($aula) => [$this->indiceDia($aula->dia_semana), $aula->hora_inicio])
+            ->sortBy(fn ($aula) => [$this->indiceDia($aula->dia_semana), $aula->tempo ?? $this->indiceHora($aula->hora_inicio)])
             ->values();
         $turmas = Turma::orderBy('nome_turma')->get();
 
@@ -87,10 +89,21 @@ class HorarioController extends Controller
         return $pos === false ? 99 : $pos;
     }
 
+    private function indiceHora($hora): int
+    {
+        if (!$hora) {
+            return 0;
+        }
+        $partes = explode(':', $hora->format('H:i'));
+
+        return ((int) $partes[0]) * 60 + ((int) $partes[1]);
+    }
+
     private function validarAula(Request $request, bool $paraProfessor = false): array
     {
         $regras = [
             'dia_semana' => ['required', Rule::in(static::DIAS)],
+            'tempo' => ['required', 'integer', Rule::in(static::TEMPOS)],
             'hora_inicio' => 'required|date_format:H:i',
             'hora_fim' => 'required|date_format:H:i|after:hora_inicio',
             'disciplina' => 'required|string|max:100',

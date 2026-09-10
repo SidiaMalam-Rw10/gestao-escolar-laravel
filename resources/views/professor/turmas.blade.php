@@ -81,7 +81,7 @@
             <div class="aula-row">
                 <span class="aula-dia">{{ $aula->dia_semana }}</span>
                 <span class="aula-disc">{{ $aula->disciplina }}</span>
-                <span class="aula-hora">{{ $aula->hora_inicio }} – {{ $aula->hora_fim }}@if($aula->sala) · {{ $aula->sala }}@endif</span>
+                <span class="aula-hora">{{ $aula->hora_inicio->format('H:i') }} a {{ $aula->hora_fim->format('H:i') }}@if($aula->sala) · {{ $aula->sala }}@endif</span>
             </div>
             @endforeach
         </div>

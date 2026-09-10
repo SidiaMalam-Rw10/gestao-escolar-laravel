@@ -737,7 +737,7 @@
                 <div class="aula-row">
                     <span class="aula-dia">{{ $aula->dia_semana }}</span>
                     <span class="aula-disc">{{ $aula->disciplina }}</span>
-                    <span class="aula-hora">{{ $aula->hora_inicio }}–{{ $aula->hora_fim }}@if($aula->sala) · {{ $aula->sala }}@endif</span>
+                    <span class="aula-hora">{{ $aula->hora_inicio->format('H:i') }}–{{ $aula->hora_fim->format('H:i') }}@if($aula->sala) · {{ $aula->sala }}@endif</span>
                 </div>
                 @endforeach
             </div>
@@ -788,60 +788,6 @@
         </div>
         @endif
     </div>
-</div>
-@endif
-
-@if(auth()->user()->isProfessor())
-<!-- Dashboard do Professor -->
-<div class="card" style="margin-bottom: 24px;">
-    <div class="card-section-header">
-        <div class="card-section-title">
-            <i class="fas fa-calendar-alt" style="color: var(--accent-green);"></i>
-            <span>Meus Horários</span>
-        </div>
-        <div class="card-section-actions">
-            <a href="#"><i class="fas fa-plus"></i> Adicionar</a>
-            <span style="color: var(--border-color);">|</span>
-            <a href="#">Ver todos →</a>
-        </div>
-    </div>
-    @if($horarios->count() > 0)
-    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px;">
-        @foreach($horarios as $horario)
-        <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); border-radius: 10px; padding: 16px; transition: all 0.2s;" onmouseover="this.style.borderColor='rgba(255, 255, 255, 0.15)'" onmouseout="this.style.borderColor='var(--border-color)'">
-            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px;">
-                <div style="font-weight: 700; color: #60A5FA; font-size: 14px;">
-                    {{ $horario->dia_semana }}
-                </div>
-                <span class="tag tag-green" style="font-size: 10px;">Ativo</span>
-            </div>
-            <div style="color: var(--text-secondary); font-size: 13px; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
-                <i class="fas fa-clock" style="font-size: 11px;"></i>
-                {{ $horario->hora_inicio }} - {{ $horario->hora_fim }}
-            </div>
-            <div style="display: flex; flex-direction: column; gap: 8px;">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <span style="font-size: 11px; color: var(--text-secondary);">Turma</span>
-                    <span style="font-size: 13px; font-weight: 600;">{{ $horario->turma->nome_turma }}</span>
-                </div>
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <span style="font-size: 11px; color: var(--text-secondary);">Disciplina</span>
-                    <span style="font-size: 13px; font-weight: 600;">{{ $horario->disciplina }}</span>
-                </div>
-            </div>
-        </div>
-        @endforeach
-    </div>
-    @else
-    <div class="empty-state">
-        <div class="empty-state-icon">�</div>
-        <p>Ainda não há horários atribuídos.</p>
-        <a href="#" class="btn" style="margin-top: 12px;">
-            <i class="fas fa-plus"></i>
-            Adicionar Horário
-        </a>
-    </div>
-    @endif
 </div>
 @endif
 

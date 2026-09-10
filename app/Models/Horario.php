@@ -10,6 +10,7 @@ class Horario extends Model
     protected $fillable = [
         'turma_id',
         'dia_semana',
+        'tempo',
         'hora_inicio',
         'hora_fim',
         'disciplina',
@@ -18,6 +19,7 @@ class Horario extends Model
     ];
 
     protected $casts = [
+        'tempo' => 'integer',
         'hora_inicio' => 'datetime:H:i',
         'hora_fim' => 'datetime:H:i',
     ];

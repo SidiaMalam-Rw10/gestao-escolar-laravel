@@ -88,7 +88,7 @@
         @include('horarios._grid', ['horarios' => $horarios, 'modo' => 'professor'])
 
         <div class="summary-text">
-            <strong>Turmas:</strong> {{ $turmasNomes ?: '—' }} | <strong>Horas:</strong> {{ $horasSemana }}h/semana
+            <strong>Horas:</strong> {{ $horasSemana }}h/semana
         </div>
 
         <div class="signatures">

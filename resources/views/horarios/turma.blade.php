@@ -25,6 +25,7 @@
     .tag{padding:4px 10px;border-radius:12px;font-size:11px;font-weight:600}
     .tag-dia{background:rgba(96,165,250,.12);color:#60A5FA}
     .tag-prof{background:rgba(234,179,8,.12);color:var(--accent-yellow)}
+    .tag-tempo{background:rgba(168,85,247,.12);color:#C084FC}
     .btn-primary{background:var(--accent-green);color:#000;border:none;padding:9px 16px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:8px;transition:all .15s}
     .btn-primary:hover{background:#1ea34e}
     .btn-danger{background:transparent;border:none;color:var(--text-secondary);cursor:pointer;font-size:13px;padding:6px 8px;border-radius:6px;transition:all .15s}
@@ -71,6 +72,7 @@
             <thead>
                 <tr>
                     <th>Dia</th>
+                    <th style="text-align:center">Tempo</th>
                     <th>Hora</th>
                     <th>Disciplina</th>
                     <th>Professor</th>
@@ -82,7 +84,8 @@
                 @foreach($horarios as $aula)
                 <tr>
                     <td><span class="tag tag-dia">{{ $aula->dia_semana }}</span></td>
-                    <td style="font-weight:500">{{ $aula->hora_inicio }} – {{ $aula->hora_fim }}</td>
+                    <td style="text-align:center">@if($aula->tempo)<span class="tag tag-tempo">{{ $aula->tempo }}º</span>@else<span style="color:var(--text-secondary)">—</span>@endif</td>
+                    <td style="font-weight:500">{{ $aula->hora_inicio->format('H:i') }} a {{ $aula->hora_fim->format('H:i') }}</td>
                     <td style="font-weight:600">{{ $aula->disciplina }}</td>
                     <td>@if($aula->professor)<span class="tag tag-prof">{{ $aula->professor->name }}</span>@else <span style="color:var(--text-secondary)">—</span> @endif</td>
                     <td style="text-align:center;color:var(--text-secondary)">{{ $aula->sala ?? '—' }}</td>
@@ -116,6 +119,16 @@
                     @endforeach
                 </select>
                 @error('dia_semana')<div class="text-error">{{ $message }}</div>@enderror
+            </div>
+            <div class="form-field">
+                <label class="form-label">Tempo</label>
+                <select name="tempo" class="form-select" required>
+                    <option value="">Selecionar tempo</option>
+                    @foreach(\App\Http\Controllers\HorarioController::TEMPOS as $numero)
+                    <option value="{{ $numero }}" {{ old('tempo') == $numero ? 'selected' : '' }}>{{ $numero }}º Tempo</option>
+                    @endforeach
+                </select>
+                @error('tempo')<div class="text-error">{{ $message }}</div>@enderror
             </div>
             <div class="form-field">
                 <label class="form-label">Hora início</label>
