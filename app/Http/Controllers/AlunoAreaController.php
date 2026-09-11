@@ -53,6 +53,103 @@ class AlunoAreaController extends Controller
         return view('aluno.pagamentos', compact('pagamentos', 'meses', 'totalPago', 'totalPendente', 'resumoAno', 'ano'));
     }
 
+    public function pwa()
+    {
+        $user = auth()->user();
+        $user->load('turma');
+
+        $turma = $user->turma;
+        $anoLetivo = $turma?->ano_lectivo ?? date('Y');
+
+        // Média global (ano letivo) — média da nota (mg) de todas as disciplinas
+        $notas = $user->notas()->where('ano_lectivo', $anoLetivo)->get();
+        $media = $notas->avg('mg');
+        $media = $media !== null ? round((float) $media, 1) : null;
+
+        // Situação financeira (ano civil corrente)
+        $pagamentos = $user->pagamentos()->where('ano', date('Y'))->orderByDesc('created_at')->get();
+        $divida = $pagamentos->whereIn('status', ['pendente', 'atrasado'])->sum('valor');
+        $situacaoFinanceira = $divida > 0 ? 'Pendente' : 'Regularizado';
+
+        // Assiduidade (%) — marcações dos professores no ano
+        $marcacoes = $user->presencaAlunoMarcacoes()->where('ano', date('Y'))->get();
+        $presentes = $marcacoes->where('estado', 'presente')->count();
+        $faltas = $marcacoes->where('estado', 'falta')->count();
+        $taxaAssiduidade = ($presentes + $faltas) > 0
+            ? round(($presentes / ($presentes + $faltas)) * 100, 1)
+            : null;
+
+        // Aulas de hoje
+        $diasSemana = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'];
+        $diaHoje = $diasSemana[now()->dayOfWeekIso - 1] ?? 'Segunda';
+        $nomeDiaHoje = $diaHoje;
+        $aulasHoje = $turma
+            ? $turma->horarios()->with('professor')->where('dia_semana', $diaHoje)->orderBy('hora_inicio')->get()
+            : collect();
+
+        // Avisos relevantes (sino + lista de atualizações)
+        $avisos = $user->avisosRelevantesQuery()->with('remetente')->latest()->take(8)->get();
+        $avisosNaoLidos = $avisos->filter(fn ($a) => !$a->foiLidoPor($user))->count();
+
+        // Feed "Últimas Atualizações" — notas, pagamentos e avisos recentes
+        $atualizacoes = collect();
+
+        foreach ($notas->sortByDesc('created_at')->take(4) as $n) {
+            if (!$n->created_at) {
+                continue;
+            }
+            $atualizacoes->push((object) [
+                'tipo' => 'nota',
+                'titulo' => 'Nota — ' . $n->disciplina,
+                'subtitulo' => ($n->trimestre . 'º Trimestre · ' . $n->created_at->format('d M Y')),
+                'valor' => '+ ' . number_format((float) $n->mg, 1),
+                'valor_estilo' => 'text-emerald-400',
+                'icone_estilo' => 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400',
+                'created_at' => $n->created_at,
+            ]);
+        }
+
+        foreach ($pagamentos->take(4) as $p) {
+            $data = $p->data_pagamento ?? $p->created_at;
+            $atualizacoes->push((object) [
+                'tipo' => 'pagamento',
+                'titulo' => 'Propina de ' . (self::MESES[$p->mes] ?? $p->mes),
+                'subtitulo' => ($p->status_label . ' · ' . ($data?->format('d M Y') ?? $p->ano)),
+                'valor' => $p->status === 'pago'
+                    ? 'Confirmado'
+                    : number_format((float) $p->valor, 0, ',', '.') . ' FCFA',
+                'valor_estilo' => $p->status === 'pago' ? 'text-emerald-400' : 'text-orange-400',
+                'icone_estilo' => $p->status === 'pago'
+                    ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
+                    : 'bg-orange-500/10 border-orange-500/20 text-orange-400',
+                'created_at' => $data ?? $p->created_at ?? now(),
+            ]);
+        }
+
+        foreach ($avisos as $a) {
+            $atualizacoes->push((object) [
+                'tipo' => 'aviso',
+                'titulo' => $a->titulo,
+                'subtitulo' => ($a->created_at?->format('d M Y') ?? 'Aviso escolar'),
+                'valor' => $a->foiLidoPor($user) ? 'Lido' : 'Novo',
+                'valor_estilo' => $a->foiLidoPor($user) ? 'text-neutral-500' : 'text-amber-400',
+                'icone_estilo' => $a->foiLidoPor($user)
+                    ? 'bg-zinc-800 border-zinc-700 text-neutral-400'
+                    : 'bg-amber-500/10 border-amber-500/20 text-amber-400',
+                'created_at' => $a->created_at ?? now(),
+            ]);
+        }
+
+        $atualizacoes = $atualizacoes->sortByDesc('created_at')->take(8)->values();
+
+        // Reutiliza o layout web para o avatar/ligação ao sistema
+        return view('aluno.pwa', compact(
+            'user', 'turma', 'anoLetivo', 'media', 'divida', 'situacaoFinanceira',
+            'taxaAssiduidade', 'aulasHoje', 'diaHoje', 'nomeDiaHoje',
+            'avisos', 'avisosNaoLidos', 'atualizacoes'
+        ));
+    }
+
     public function presencas()
     {
         $user = auth()->user();

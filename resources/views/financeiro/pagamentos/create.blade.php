@@ -17,6 +17,9 @@
     .field select,.field input,.field textarea{padding:9px 14px;background:var(--bg-input,#151D19);border:1px solid var(--border-color);border-radius:6px;color:var(--text-primary);font-size:13px;font-family:inherit}
     .field select:focus,.field input:focus,.field textarea:focus{outline:none;border-color:var(--accent-green)}
     .full{grid-column:1/-1}
+    .sub-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.7px;color:var(--text-secondary);display:block;margin-bottom:6px}
+    .inline-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    @media(max-width:640px){.inline-grid{grid-template-columns:1fr}}
     .btn{background:var(--accent-green);color:#000;border:none;padding:11px 22px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:8px;transition:background .15s}
     .btn:hover{background:#1ea34e}
     .checkbox-line{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text-secondary)}
@@ -65,13 +68,30 @@
                     </select>
                 </div>
 
-                <div class="field">
-                    <label>Mês</label>
-                    <select name="mes" required>
-                        @foreach($meses as $k => $m)
-                        <option value="{{ $k }}" {{ $k === $mes ? 'selected' : '' }}>{{ $m }}</option>
-                        @endforeach
-                    </select>
+                <div class="field full">
+                    <label>Período a pagar</label>
+                    <div class="inline-grid">
+                        <div>
+                            <span class="sub-label">Mês inicial</span>
+                            <select name="mes" id="mes_inicial" required>
+                                @foreach($meses as $k => $m)
+                                <option value="{{ $k }}" {{ $k === $mes ? 'selected' : '' }}>{{ $m }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <span class="sub-label">Nº de meses a pagar</span>
+                            <select name="quantidade_meses" id="quantidade_meses" required>
+                                @for($n = 1; $n <= 12; $n++)
+                                <option value="{{ $n }}" {{ $n === 1 ? 'selected' : '' }}>{{ $n }} mês{{ $n > 1 ? 'es' : '' }}</option>
+                                @endfor
+                            </select>
+                        </div>
+                    </div>
+                    <div class="error-msg" id="periodo-resumo"></div>
+                    @error('quantidade_meses')
+                        <div class="error-msg">{{ $message }}</div>
+                    @enderror
                 </div>
 
                 <div class="field">
@@ -131,6 +151,9 @@
     const alunoSelect = document.getElementById('aluno_id');
     const valorInput = document.getElementById('valor');
     const valorHint = document.getElementById('valor-hint');
+    const mesSelect = document.getElementById('mes_inicial');
+    const qtdSelect = document.getElementById('quantidade_meses');
+    const periodoResumo = document.getElementById('periodo-resumo');
 
     function filtrarAlunos() {
         const turmaId = turmaSelect.value;
@@ -145,18 +168,55 @@
         preencherValor();
     }
 
+    function nomeMes(numero) {
+        const opt = Array.from(mesSelect.options).find(o => parseInt(o.value, 10) === numero);
+        return opt ? opt.textContent.trim() : '';
+    }
+
+    function aplicarMudancas() {
+        preencherValor();
+        preencherResumo();
+    }
+
     function preencherValor() {
         const opt = alunoSelect.selectedOptions[0];
         const propina = opt && opt.dataset.propina;
+        const qtd = parseInt(qtdSelect.value || '1', 10);
         if (propina && parseFloat(propina) > 0) {
-            valorInput.value = parseFloat(propina).toFixed(2);
-            valorHint.textContent = 'Propina mensal da turma: ' + parseFloat(propina).toFixed(2) + ' Xof';
+            const total = parseFloat(propina) * qtd;
+            valorInput.value = total.toFixed(2);
+            valorHint.textContent = 'Propina mensal: ' + parseFloat(propina).toFixed(2) + ' Xof × ' + qtd + ' mes(es) = ' + total.toFixed(2) + ' Xof';
         } else {
             valorHint.textContent = '';
+        }
+        preencherResumo();
+    }
+
+    function preencherResumo() {
+        const mesIni = parseInt(mesSelect.value || '1', 10);
+        const qtd = parseInt(qtdSelect.value || '1', 10);
+        const anoInicial = parseInt(document.querySelector('select[name="ano"]')?.value || '', 10);
+        const nomes = [];
+        for (let i = 0; i < qtd; i++) {
+            const mes = ((mesIni - 1 + i) % 12) + 1;
+            const ano = anoInicial + Math.floor((mesIni - 1 + i) / 12);
+            nomes.push(nomeMes(mes) + '/' + ano);
+        }
+        const total = parseFloat(valorInput.value || '0');
+        if (qtd > 1) {
+            periodoResumo.textContent = 'Serão registados ' + qtd + ' meses: ' + nomes.join(', ') + ' · Total: ' + total.toFixed(2) + ' Xof';
+        } else {
+            periodoResumo.textContent = '';
         }
     }
 
     turmaSelect.addEventListener('change', filtrarAlunos);
     alunoSelect.addEventListener('change', preencherValor);
+    mesSelect.addEventListener('change', aplicarMudancas);
+    qtdSelect.addEventListener('change', aplicarMudancas);
+    valorInput.addEventListener('input', preencherResumo);
+    document.querySelector('select[name="ano"]')?.addEventListener('change', preencherResumo);
+
+    aplicarMudancas();
 </script>
 @endsection

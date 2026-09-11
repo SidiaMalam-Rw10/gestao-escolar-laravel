@@ -212,6 +212,7 @@ Route::middleware('auth')->group(function () {
         Route::get('meu-horario', [AlunoAreaController::class, 'horario'])->name('minhas.horario');
         Route::get('meus-pagamentos', [AlunoAreaController::class, 'pagamentos'])->name('minhas.pagamentos');
         Route::get('minhas-presencas', [AlunoAreaController::class, 'presencas'])->name('minhas.presencas');
+        Route::get('app', [AlunoAreaController::class, 'pwa'])->name('pwa');
     });
 
     // Rotas Encarregado de Educação
@@ -292,13 +293,14 @@ Route::middleware('auth')->group(function () {
         Route::put('/', [ConfiguracaoController::class, 'update'])->name('update');
     });
 
-    // Painel MiScool (dono do aplicativo)
+    // Painel No Skola (dono do aplicativo)
     Route::middleware('can:dono')->prefix('central')->name('central.')->group(function () {
         Route::get('escolas', [EscolaController::class, 'index'])->name('escolas.index');
         Route::get('escolas/nova', [EscolaController::class, 'create'])->name('escolas.create');
         Route::post('escolas', [EscolaController::class, 'store'])->name('escolas.store');
         Route::get('escolas/{escola}/editar', [EscolaController::class, 'edit'])->name('escolas.edit');
         Route::put('escolas/{escola}', [EscolaController::class, 'update'])->name('escolas.update');
+        Route::post('escolas/{escola}/toggle', [EscolaController::class, 'toggleAtivo'])->name('escolas.toggle');
         Route::delete('escolas/{escola}', [EscolaController::class, 'destroy'])->name('escolas.destroy');
 
         Route::get('usuarios', [CentralUserController::class, 'index'])->name('usuarios.index');

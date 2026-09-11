@@ -79,6 +79,10 @@
         </div>
 
         <div class="rec-body">
+            @php
+                $quantidade = (int) ($pagamento->quantidade_meses ?? 1);
+                $valorPorMes = $quantidade > 1 ? round(((float) $pagamento->valor) / $quantidade, 2) : (float) $pagamento->valor;
+            @endphp
             <div class="rec-meta">
                 <div class="item">
                     <div class="k">Aluno</div>
@@ -89,8 +93,14 @@
                     <div class="v">{{ $pagamento->aluno?->turma?->nome_turma ?? '—' }}</div>
                 </div>
                 <div class="item">
-                    <div class="k">Mês/Ano</div>
-                    <div class="v">{{ $meses[$pagamento->mes] ?? $pagamento->mes }} / {{ $pagamento->ano }}</div>
+                    <div class="k">Período</div>
+                    <div class="v">
+                        @if($quantidade > 1)
+                            {{ $quantidade }} meses · {{ $meses[$pagamento->mes] ?? $pagamento->mes }}/{{ $pagamento->ano }} → {{ $meses[$pagamento->mes_fim] ?? $pagamento->mes_fim }}/{{ $pagamento->ano_fim }}
+                        @else
+                            {{ $meses[$pagamento->mes] ?? $pagamento->mes }} / {{ $pagamento->ano }}
+                        @endif
+                    </div>
                 </div>
                 <div class="item">
                     <div class="k">Data</div>
@@ -109,10 +119,12 @@
             </div>
 
             <div class="rec-extract">
-                <div class="rec-line odd" style="color:var(--text-secondary)">
-                    <span>Mensalidade — {{ $meses[$pagamento->mes] }} / {{ $pagamento->ano }}</span>
-                    <span>{{ number_format($pagamento->valor, 2, ',', ' ') }} {{ $escola->moeda }}</span>
+                @foreach($pagamento->meses_array as $m)
+                <div class="rec-line {{ $loop->index % 2 ? '' : 'odd' }}" style="color:var(--text-secondary)">
+                    <span>Mensalidade — {{ $meses[$m['mes']] ?? $m['mes'] }} / {{ $m['ano'] }}</span>
+                    <span>{{ number_format($valorPorMes, 2, ',', ' ') }} {{ $escola->moeda }}</span>
                 </div>
+                @endforeach
                 @if($pagamento->observacoes)
                 <div class="rec-line odd" style="color:var(--text-secondary);font-style:italic">
                     <span>Obs.: {{ $pagamento->observacoes }}</span>

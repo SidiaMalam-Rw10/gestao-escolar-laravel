@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Nova Escola')
-@section('page-title', 'Painel MiScool — Nova Escola')
+@section('page-title', 'Painel ' . \App\Models\Configuracao::plataformaNome() . ' — Nova Escola')
 
 @section('content')
 <style>
@@ -44,7 +44,7 @@
             <div class="form-group">
                 <label for="nome">Nome da escola *</label>
                 <input type="text" id="nome" name="nome" class="form-control" value="{{ old('nome') }}" required maxlength="150">
-                <div class="hint">Será criada uma base de dados própria a partir do nome (ex.: <span class="mono" style="font-family:monospace">miscool_&lt;nome&gt;</span>).</div>
+                <div class="hint">Será criada uma base de dados própria a partir do nome (ex.: <span class="mono" style="font-family:monospace">noskola_&lt;nome&gt;</span>).</div>
             </div>
             <div class="form-row">
                 <div class="form-group">

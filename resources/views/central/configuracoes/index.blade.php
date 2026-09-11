@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Configuração da plataforma')
-@section('page-title', 'Painel MiScool — Configuração')
+@section('page-title', 'Painel ' . \App\Models\Configuracao::plataformaNome() . ' — Configuração')
 
 @section('content')
 <style>

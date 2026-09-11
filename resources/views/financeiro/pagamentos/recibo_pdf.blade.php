@@ -40,6 +40,10 @@
         </div>
 
         <div class="body">
+            @php
+                $quantidade = (int) ($pagamento->quantidade_meses ?? 1);
+                $valorPorMes = $quantidade > 1 ? round(((float) $pagamento->valor) / $quantidade, 2) : (float) $pagamento->valor;
+            @endphp
             <table class="meta">
                 <tr>
                     <td class="k">Aluno</td><td class="v">{{ $pagamento->aluno?->name ?? '—' }}</td>
@@ -48,7 +52,13 @@
                     <td class="k">Turma</td><td class="v">{{ $pagamento->aluno?->turma?->nome_turma ?? '—' }}</td>
                 </tr>
                 <tr>
-                    <td class="k">Mês / Ano</td><td class="v">{{ $meses[$pagamento->mes] ?? $pagamento->mes }} de {{ $pagamento->ano }}</td>
+                    <td class="k">Período</td><td class="v">
+                        @if($quantidade > 1)
+                            {{ $quantidade }} meses · {{ $meses[$pagamento->mes] ?? $pagamento->mes }}/{{ $pagamento->ano }} → {{ $meses[$pagamento->mes_fim] ?? $pagamento->mes_fim }}/{{ $pagamento->ano_fim }}
+                        @else
+                            {{ $meses[$pagamento->mes] ?? $pagamento->mes }} de {{ $pagamento->ano }}
+                        @endif
+                    </td>
                 </tr>
                 <tr>
                     <td class="k">Data</td><td class="v">{{ $pagamento->data_pagamento ? $pagamento->data_pagamento->format('d/m/Y') : '—' }}</td>
@@ -60,10 +70,12 @@
 
             <div class="divider"></div>
 
+            @foreach($pagamento->meses_array as $m)
             <div class="extract">
-                <span>Mensalidade — {{ $meses[$pagamento->mes] ?? $pagamento->mes }} / {{ $pagamento->ano }}</span>
-                <b>{{ number_format($pagamento->valor, 2, ',', ' ') }} {{ $escola->moeda }}</b>
+                <span>Mensalidade — {{ $meses[$m['mes']] ?? $m['mes'] }} / {{ $m['ano'] }}</span>
+                <b>{{ number_format($valorPorMes, 2, ',', ' ') }} {{ $escola->moeda }}</b>
             </div>
+            @endforeach
 
             <div class="total">
                 <div class="l">Total pago</div>

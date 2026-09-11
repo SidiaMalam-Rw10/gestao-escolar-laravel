@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Utilizadores da plataforma')
-@section('page-title', 'Painel MiScool — Utilizadores da plataforma')
+@section('page-title', 'Painel ' . \App\Models\Configuracao::plataformaNome() . ' — Utilizadores da plataforma')
 
 @section('content')
 <style>
@@ -66,7 +66,7 @@
 <div class="page-header">
     <div class="page-head-main">
         <div class="page-title">Utilizadores da plataforma</div>
-        <div class="page-sub">Equipa responsável pela manutenção da MiScool e registo de escolas.</div>
+        <div class="page-sub">Equipa responsável pela manutenção da No Skola e registo de escolas.</div>
     </div>
     <a href="{{ route('central.usuarios.create') }}" class="btn-primary"><i class="fas fa-user-plus"></i> Novo Utilizador</a>
 </div>

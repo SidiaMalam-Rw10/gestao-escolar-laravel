@@ -10,6 +10,9 @@ class Pagamento extends Model
     protected $fillable = [
         'aluno_id',
         'mes',
+        'quantidade_meses',
+        'mes_fim',
+        'ano_fim',
         'ano',
         'valor',
         'data_pagamento',
@@ -23,7 +26,34 @@ class Pagamento extends Model
     protected $casts = [
         'valor' => 'decimal:2',
         'data_pagamento' => 'datetime',
+        'quantidade_meses' => 'integer',
+        'mes_fim' => 'integer',
+        'ano_fim' => 'integer',
     ];
+
+    public function getMesesArrayAttribute(): array
+    {
+        $quantidade = $this->quantidade_meses ?: 1;
+
+        if ($quantidade <= 1) {
+            return [['mes' => $this->mes, 'ano' => $this->ano]];
+        }
+
+        $mes = $this->mes;
+        $ano = $this->ano;
+        $lista = [];
+
+        while (count($lista) < $quantidade) {
+            $lista[] = ['mes' => $mes, 'ano' => $ano];
+            $mes++;
+            if ($mes > 12) {
+                $mes = 1;
+                $ano++;
+            }
+        }
+
+        return $lista;
+    }
 
     public function aluno(): BelongsTo
     {

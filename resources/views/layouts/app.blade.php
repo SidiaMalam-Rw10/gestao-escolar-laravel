@@ -524,7 +524,7 @@
                     <img src="{{ Configuracao::obter('plataforma.logotipo') ? asset('storage/' . Configuracao::obter('plataforma.logotipo')) : (Configuracao::obter('escola.logotipo') ? asset('storage/' . Configuracao::obter('escola.logotipo')) : asset('logo.png')) }}" alt="Logo" style="width: 100%; height: 100%; object-fit: contain; border-radius: 4px;">
                 </div>
                 <div class="logo-text">
-                    <div class="logo-title">{{ Configuracao::obter('escola.nome', 'MiScool') }}</div>
+                    <div class="logo-title">{{ Configuracao::obter('escola.nome', \App\Models\Configuracao::plataformaNome()) }}</div>
                     <div class="logo-subtitle">By RW-10</div>
                 </div>
             </div>
@@ -795,7 +795,7 @@
 
                 @can('dono')
                 <div class="nav-section">
-                    <div class="nav-title">Painel MiScool</div>
+                    <div class="nav-title">Painel {{ \App\Models\Configuracao::plataformaNome() }}</div>
                     <a href="{{ route('central.escolas.index') }}" class="nav-item {{ request()->routeIs('central.escolas.*') ? 'active' : '' }}">
                         <i class="fas fa-school"></i>
                         <span>Escolas registadas</span>
@@ -938,7 +938,7 @@
                             @can('dono')
                             <a href="{{ route('central.escolas.index') }}" class="dropdown-item {{ request()->routeIs('central.escolas.*') ? 'active' : '' }}">
                                 <i class="fas fa-school"></i>
-                                <span>Painel MiScool — Escolas</span>
+                                <span>Painel {{ \App\Models\Configuracao::plataformaNome() }} — Escolas</span>
                             </a>
                             @endcan
                             <div class="dropdown-item">

@@ -79,39 +79,59 @@ class User extends Authenticatable
 
     /**
      * Avisos relevantes para este utilizador (para o sino de notificações).
+     *
+     * Avisos "individual" são privados: só o destinatário direto (ou, sendo encarregado,
+     * o encarregado vinculado a esse aluno) os vê — nunca todos os encarregados.
      */
     public function avisosRelevantesQuery()
     {
         return Aviso::where(function ($q) {
+            // Avisos globais
             $q->where('destinatario_tipo', 'todos');
 
-            // Gestão (admin/diretor/pctp) vê todos os avisos
-            if ($this->isAdmin() || $this->isDiretor()) {
-                $q->orWhereIn('destinatario_tipo', ['alunos', 'professores', 'turma', 'individual']);
-                return;
-            }
+            // Avisos individuais (privados): só o destinatário. Se for encarregado,
+            // também os destinados a (individual) dos seus filhos.
+            $q->orWhere(function ($qIndiv) {
+                $qIndiv->where('destinatario_tipo', 'individual')
+                       ->where('destinatario_id', $this->id);
+
+                if ($this->isEncarregado()) {
+                    $filhos = $this->perfilEncarregado?->alunos()->get() ?? collect();
+                    $filhoIds = $filhos->pluck('id')->filter()->values();
+                    if ($filhoIds->isNotEmpty()) {
+                        $qIndiv->orWhere(fn ($qI) => $qI->whereIn('destinatario_id', $filhoIds));
+                    }
+                }
+            });
+
+            // Avisos partilhados por perfil (nunca "individual")
+            $gestao = $this->isAdmin() || $this->isDiretor();
 
             if ($this->isAluno()) {
                 $q->orWhere('destinatario_tipo', 'alunos')
-                  ->orWhere(fn ($q2) => $q2->where('destinatario_tipo', 'turma')->where('turma_id', $this->turma_id))
-                  ->orWhere(fn ($q2) => $q2->where('destinatario_tipo', 'individual')->where('destinatario_id', $this->id));
+                  ->orWhere(fn ($q2) => $q2->where('destinatario_tipo', 'turma')->where('turma_id', $this->turma_id));
             }
 
             if ($this->isProfessor()) {
                 $turmaIds = $this->horariosComoProfessor()->pluck('turma_id');
-                $q->orWhere('destinatario_tipo', 'professores')
-                  ->orWhere(fn ($q2) => $q2->where('destinatario_tipo', 'turma')->whereIn('turma_id', $turmaIds))
-                  ->orWhere(fn ($q2) => $q2->where('destinatario_tipo', 'individual')->where('destinatario_id', $this->id));
+                $q->orWhere('destinatario_tipo', 'professores');
+                if ($turmaIds->isNotEmpty()) {
+                    $q->orWhere(fn ($q2) => $q2->where('destinatario_tipo', 'turma')->whereIn('turma_id', $turmaIds));
+                }
             }
 
             if ($this->isEncarregado()) {
                 $filhos = $this->perfilEncarregado?->alunos()->get() ?? collect();
                 $turmaIds = $filhos->pluck('turma_id')->filter()->values();
-                $filhoIds = $filhos->pluck('id');
-                $q->orWhere('destinatario_tipo', 'alunos')
-                  ->orWhere(fn ($q2) => $q2->where('destinatario_tipo', 'turma')->whereIn('turma_id', $turmaIds))
-                  ->orWhere(fn ($q2) => $q2->where('destinatario_tipo', 'individual')->whereIn('destinatario_id', $filhoIds))
-                  ->orWhere(fn ($q2) => $q2->where('destinatario_tipo', 'individual')->where('destinatario_id', $this->id));
+                $q->orWhere('destinatario_tipo', 'alunos');
+                if ($turmaIds->isNotEmpty()) {
+                    $q->orWhere(fn ($q2) => $q2->where('destinatario_tipo', 'turma')->whereIn('turma_id', $turmaIds));
+                }
+            }
+
+            // Gestão (admin/diretor/pctp) vê os avisos de divulgação — individual fica excluído
+            if ($gestao) {
+                $q->orWhereIn('destinatario_tipo', ['alunos', 'professores', 'turma']);
             }
         });
     }

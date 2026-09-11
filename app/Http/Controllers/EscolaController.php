@@ -131,6 +131,22 @@ class EscolaController extends Controller
             ->with('success', "Dados da escola «{$escola->nome}» actualizados.");
     }
 
+    public function toggleAtivo(Escola $escola): RedirectResponse
+    {
+        $escola->update(['ativa' => ! $escola->ativa]);
+
+        Atividade::registar(
+            $escola->ativa ? 'escola_ativada' : 'escola_desativada',
+            ($escola->ativa ? 'Reactivate' : 'Desativou') . " a escola «{$escola->nome}»",
+            auth()->user()
+        );
+
+        return redirect()->route('central.escolas.index')
+            ->with('success', $escola->ativa
+                ? "Escola «{$escola->nome}» ativada com sucesso!"
+                : "Escola «{$escola->nome}» desativada com sucesso!");
+    }
+
     public function destroy(Escola $escola): RedirectResponse
     {
         $nome = $escola->nome;
@@ -169,7 +185,7 @@ class EscolaController extends Controller
 
     private function nomeBdUnico(string $slug): string
     {
-        $base = 'miscool_' . str_replace('-', '_', $slug);
+        $base = 'noskola_' . str_replace('-', '_', $slug);
         $base = Str::lower($base);
         $nome = $base;
         $i = 2;

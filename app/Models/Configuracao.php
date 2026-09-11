@@ -50,7 +50,16 @@ class Configuracao extends Model
 
     public static function nome(): string
     {
-        return (string) self::obter('escola.nome', 'MiScool');
+        return (string) self::obter('escola.nome', 'No Skola');
+    }
+
+    /**
+     * Nome da plataforma (painel do proprietário/dono), configurável em
+     * Configuração da Plataforma → chave "plataforma.nome".
+     */
+    public static function plataformaNome(): string
+    {
+        return (string) self::obter('plataforma.nome', 'No Skola');
     }
 
     public static function logotipo(): ?string

@@ -16,7 +16,7 @@ class DashboardController extends Controller
     {
         $user = auth()->user();
 
-        // Plataforma MiScool (dono) — painel próprio, sem dados de escola
+        // Plataforma No Skola (dono) — painel próprio, sem dados de escola
         if ($user->isProprietario()
             && config('database.connections.' . DB::getDefaultConnection() . '.database') === env('DB_DATABASE')
         ) {
@@ -150,13 +150,16 @@ class DashboardController extends Controller
             $turmaIds = $filhos->pluck('turma_id')->filter()->values();
             $filhoIds = $filhos->pluck('id');
 
-            $data['avisos'] = Aviso::where(function ($q) use ($turmaIds, $filhoIds) {
+            $data['avisos'] = Aviso::where(function ($q) use ($turmaIds, $filhoIds, $user) {
                 $q->whereIn('destinatario_tipo', ['todos', 'alunos'])
                   ->orWhere(function ($q1) use ($turmaIds) {
                       $q1->where('destinatario_tipo', 'turma')->whereIn('turma_id', $turmaIds);
                   })
                   ->orWhere(function ($q2) use ($filhoIds) {
                       $q2->where('destinatario_tipo', 'individual')->whereIn('destinatario_id', $filhoIds);
+                  })
+                  ->orWhere(function ($q3) use ($user) {
+                      $q3->where('destinatario_tipo', 'individual')->where('destinatario_id', $user->id);
                   });
             })->with('remetente', 'turma')->latest()->limit(15)->get();
 

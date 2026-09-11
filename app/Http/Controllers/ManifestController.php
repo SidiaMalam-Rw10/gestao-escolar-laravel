@@ -10,13 +10,13 @@ class ManifestController extends Controller
 {
     public function index(): JsonResponse
     {
-        $nome = (string) (Configuracao::obter('escola.nome', 'MiScool') ?: 'MiScool');
+        $nome = (string) (Configuracao::obter('escola.nome', 'No Skola') ?: 'No Skola');
 
         return response()
             ->json([
                 'name' => $nome,
                 'short_name' => Str::limit($nome, 12, '…'),
-                'description' => 'Sistema de Gestão Escolar MiScool',
+                'description' => 'Sistema de Gestão Escolar No Skola',
                 'lang' => 'pt',
                 'start_url' => '/',
                 'scope' => '/',

@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Editar Escola')
-@section('page-title', 'Painel MiScool — Editar Escola')
+@section('page-title', 'Painel ' . \App\Models\Configuracao::plataformaNome() . ' — Editar Escola')
 
 @section('content')
 <style>

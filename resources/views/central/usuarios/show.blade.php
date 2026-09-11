@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Utilizador ' . $usuario->name)
-@section('page-title', 'Painel MiScool — Utilizador')
+@section('page-title', 'Painel ' . \App\Models\Configuracao::plataformaNome() . ' — Utilizador')
 
 @section('content')
 <style>
@@ -106,7 +106,7 @@
             <div class="info-ic"><i class="fas fa-user-tag"></i></div>
             <div style="flex:1">
                 <div class="info-label">Perfil</div>
-                <div class="info-value">Proprietário da plataforma (Painel MiScool)</div>
+                <div class="info-value">Proprietário da plataforma (Painel No Skola)</div>
             </div>
         </div>
         <div class="info-row">

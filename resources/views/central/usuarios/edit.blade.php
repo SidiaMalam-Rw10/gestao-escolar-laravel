@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Editar utilizador da plataforma')
-@section('page-title', 'Painel MiScool — Editar Utilizador')
+@section('page-title', 'Painel ' . \App\Models\Configuracao::plataformaNome() . ' — Editar Utilizador')
 
 @section('content')
 <style>
@@ -111,7 +111,7 @@
             <div class="form-group">
                 <label class="checkbox-group" style="gap:8px">
                     <input type="checkbox" name="is_active" value="1" {{ old('is_active', $usuario->is_active) ? 'checked' : '' }}>
-                    <span>Conta ativa (pode iniciar sessão no Painel MiScool)</span>
+                    <span>Conta ativa (pode iniciar sessão no Painel No Skola)</span>
                 </label>
             </div>
         </div>

@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#000000" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="{{ \App\Models\Configuracao::nome() ?: 'No Skola' }}" />
+  <meta name="description" content="Gestão Escolar — Portal do Aluno" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="icon" type="image/png" sizes="192x192" href="/pwa/icon-192.png" />
+  <link rel="icon" type="image/png" sizes="512x512" href="/pwa/icon-512.png" />
+  <link rel="apple-touch-icon" href="/pwa/apple-touch-icon.png" />
+  <title>{{ \App\Models\Configuracao::nome() ?: 'No Skola' }} — Portal do Aluno</title>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/3.13.3/cdn.min.js" defer></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Inter"', 'system-ui', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            accent: '#22c55e',
+          },
+          boxShadow: {
+            app: '0 0 80px 0 rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.05)',
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    * { -webkit-tap-highlight-color: transparent; }
+    html, body { height: 100%; overflow: hidden; }
+
+    .scroll-area::-webkit-scrollbar { width: 0; }
+
+    .card-gradient {
+      background: linear-gradient(135deg, #18181b 0%, #111827 50%, #0f172a 100%);
+      position: relative;
+      overflow: hidden;
+    }
+    .card-gradient::before {
+      content: '';
+      position: absolute;
+      top: -40%;
+      right: -20%;
+      width: 200px;
+      height: 200px;
+      background: radial-gradient(circle, rgba(34,197,94,0.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .card-gradient::after {
+      content: '';
+      position: absolute;
+      bottom: -30%;
+      left: -10%;
+      width: 150px;
+      height: 150px;
+      background: radial-gradient(circle, rgba(34,197,94,0.06) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    @keyframes pulse-green {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+    .pulse-dot { animation: pulse-green 2s ease-in-out infinite; }
+
+    .nav-active::before {
+      content: '';
+      display: block;
+      width: 4px;
+      height: 4px;
+      border-radius: 9999px;
+      background: #22c55e;
+      margin: 0 auto 2px;
+    }
+
+    body {
+      background-color: #111111;
+      font-family: 'Inter', system-ui, sans-serif;
+    }
+
+    /* Mobile: fill the real visible viewport so the bottom nav is never cut off */
+    #app-shell { height: 100dvh; }
+    @supports not (height: 100dvh) { #app-shell { height: 100vh; } }
+
+    @media (min-width: 768px) {
+      body {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #0a0a0a;
+        background-image: radial-gradient(ellipse at 50% 50%, #1a1a1a 0%, #0a0a0a 100%);
+      }
+      #app-shell {
+        max-width: 430px;
+        width: 100%;
+        height: 92vh;
+        max-height: 900px;
+        border-radius: 2.5rem;
+        box-shadow: var(--tw-shadow, 0 0 80px 0 rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.06));
+        overflow: hidden;
+        position: relative;
+      }
+    }
+
+    .avatar-ring {
+      box-shadow: 0 0 0 2px #22c55e, 0 0 0 4px rgba(34,197,94,0.15);
+    }
+
+    .bottom-safe { padding-bottom: env(safe-area-inset-bottom, 0px); }
+
+    .chip {
+      font-size: 0.6rem;
+      letter-spacing: 0.08em;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .action-btn:active { transform: scale(0.93); transition: transform 0.12s ease; }
+  </style>
+</head>
+<body class="bg-neutral-950 h-full">
+
+@php
+    $pwaConfig = [
+        'media' => $media,
+        'situacao' => $situacaoFinanceira,
+        'divida' => (float) $divida,
+    ];
+@endphp
+<script>
+  window.PWA = @json($pwaConfig);
+</script>
+
+<!-- ─── APP SHELL ─── -->
+<div id="app-shell"
+     x-data="{
+       nav: 'inicio',
+       showGrade: false,
+       showBalance: false,
+       notifOpen: false,
+       media: window.PWA.media,
+       situacao: window.PWA.situacao,
+     }"
+     class="bg-black w-full md:shadow-app flex flex-col relative">
+
+  <!-- ════════════ HEADER ════════════ -->
+  <header class="flex-none px-5 pt-6 pb-4 flex items-center justify-between z-10">
+    <div class="flex items-center gap-3">
+      <div class="relative flex-none">
+        <div class="w-11 h-11 rounded-full avatar-ring overflow-hidden bg-zinc-900 flex items-center justify-center">
+          @if($user->fotoUrl())
+            <img src="{{ $user->fotoUrl() }}" alt="{{ $user->name }}" class="w-full h-full object-cover">
+          @else
+            <span class="text-emerald-400 text-sm font-bold">{{ mb_strtoupper(mb_substr($user->name, 0, 1)) }}</span>
+          @endif
+        </div>
+        <span class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-black pulse-dot"></span>
+      </div>
+      <div>
+        <p class="text-neutral-500 text-[10px] font-semibold tracking-widest uppercase">{{ $user->isEncarregado() ? 'Encarregado' : 'Aluno' }}</p>
+        <p class="text-white text-sm font-bold leading-tight tracking-tight">{{ $user->name }}</p>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <a href="{{ route('aluno.minhas.notas') }}" class="relative w-9 h-9 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center active:scale-95 transition-transform">
+        <svg class="w-[18px] h-[18px] text-neutral-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+        </svg>
+        @if($avisosNaoLidos > 0)
+          <span class="absolute -top-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full flex items-center justify-center">
+            <span class="text-black text-[9px] font-bold">{{ min($avisosNaoLidos, 9) }}</span>
+          </span>
+        @endif
+      </a>
+
+      @if(\App\Models\Configuracao::logotipoUrl())
+        <img src="{{ \App\Models\Configuracao::logotipoUrl() }}" alt="Logo" class="w-9 h-9 rounded-xl object-contain bg-zinc-900 border border-zinc-800 flex-none" title="Escola">
+      @else
+        <div class="w-9 h-9 rounded-xl overflow-hidden border border-zinc-800 flex-none" title="Guiné-Bissau">
+          <svg viewBox="0 0 900 600" xmlns="http://www.w3.org/2000/svg" class="w-full h-full">
+            <rect width="300" height="600" fill="#CE1126"/>
+            <rect x="300" y="0" width="600" height="300" fill="#FFD700"/>
+            <rect x="300" y="300" width="600" height="300" fill="#009E49"/>
+            <polygon points="150,200 175,275 255,275 193,320 217,395 150,350 83,395 107,320 45,275 125,275" fill="#000"/>
+          </svg>
+        </div>
+      @endif
+    </div>
+  </header>
+
+  <!-- ════════════ CONTEÚDO ════════════ -->
+  <main class="flex-1 overflow-y-auto scroll-area px-4 pb-2 space-y-4">
+
+    <!-- ── CARTÃO PRINCIPAL ── -->
+    <div class="card-gradient rounded-2xl border border-zinc-800 p-5 relative">
+      <div class="flex items-start justify-between mb-5">
+        <div>
+          <p class="text-neutral-500 chip mb-1">Turma · Ano Lectivo</p>
+          <h2 class="text-white font-bold text-base leading-tight">
+            {{ $turma?->nivel }}º Ano — {{ $turma?->nome_turma ?? 'Sem turma' }}
+          </h2>
+          <p class="text-neutral-500 text-xs mt-0.5 font-mono">Matríc. #{{ $user->numero ?? '—' }}</p>
+        </div>
+        <div class="flex flex-col items-end gap-1">
+          @if($user->is_active)
+            <span class="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 chip px-2 py-1 rounded-lg">Activo</span>
+          @endif
+          <span class="text-neutral-600 text-[10px]">{{ $anoLetivo - 1 }} / {{ $anoLetivo }}</span>
+        </div>
+      </div>
+
+      <div class="border-t border-zinc-800/80 mb-4"></div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div class="bg-black/40 rounded-xl p-3 border border-zinc-800">
+          <p class="text-neutral-500 text-[10px] font-semibold uppercase tracking-wider mb-2">Média Global</p>
+          <div class="flex items-center gap-2 min-w-0">
+            <p class="text-white text-xl font-bold font-mono tracking-tight"
+               x-text="showGrade ? (media !== null ? media.toFixed(1) : '—') : '•••••'"></p>
+            <button @click="showGrade = !showGrade" class="text-emerald-500 hover:text-emerald-400 transition-colors flex-none"
+                    :aria-label="showGrade ? 'Ocultar média' : 'Mostrar média'">
+              <svg x-show="!showGrade" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+              </svg>
+              <svg x-show="showGrade" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
+              </svg>
+            </button>
+          </div>
+          <p class="text-neutral-600 text-[10px] mt-1">em 20 valores</p>
+        </div>
+
+        <div class="bg-black/40 rounded-xl p-3 border border-zinc-800">
+          <p class="text-neutral-500 text-[10px] font-semibold uppercase tracking-wider mb-2">Situação Financ.</p>
+          <div class="flex items-center gap-2 min-w-0">
+            <p class="text-emerald-400 text-base font-bold font-mono truncate"
+               x-text="showBalance ? situacao : '••••••••'"></p>
+            <button @click="showBalance = !showBalance" class="text-emerald-500 hover:text-emerald-400 transition-colors flex-none"
+                    :aria-label="showBalance ? 'Ocultar situação' : 'Mostrar situação'">
+              <svg x-show="!showBalance" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+              </svg>
+              <svg x-show="showBalance" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
+              </svg>
+            </button>
+          </div>
+          <p class="text-neutral-600 text-[10px] mt-1">propinas {{ $divida > 0 ? number_format($divida, 0, ',', '.') . ' FCFA em dívida' : 'em dia' }}</p>
+        </div>
+      </div>
+
+      <div class="mt-4">
+        <div class="flex justify-between items-center mb-1.5">
+          <p class="text-neutral-500 text-[10px] font-semibold uppercase tracking-wider">Assiduidade</p>
+          <p class="text-emerald-400 text-[10px] font-bold">{{ $taxaAssiduidade !== null ? $taxaAssiduidade . '%' : '—' }}</p>
+        </div>
+        <div class="h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+          <div class="h-full bg-gradient-to-r from-emerald-600 to-emerald-400 rounded-full"
+               style="width: {{ min($taxaAssiduidade ?? 0, 100) }}%"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── ACÇÕES RÁPIDAS ── -->
+    <div class="bg-zinc-900 rounded-2xl border border-zinc-800 p-4">
+      <p class="text-neutral-500 text-[10px] font-semibold uppercase tracking-widest mb-4">Acções Rápidas</p>
+      <div class="grid grid-cols-4 gap-2">
+        <button class="action-btn flex flex-col items-center gap-2" onclick="window.location='{{ route('aluno.minhas.presencas') }}'">
+          <div class="w-12 h-12 rounded-2xl bg-emerald-500 flex items-center justify-center shadow-lg shadow-emerald-500/20">
+            <svg class="w-5 h-5 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+              <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+          </div>
+          <span class="text-white text-[10px] font-medium text-center leading-tight">Justificar Falta</span>
+        </button>
+        <button class="action-btn flex flex-col items-center gap-2" onclick="window.location='{{ route('aluno.minhas.horario') }}'">
+          <div class="w-12 h-12 rounded-2xl bg-zinc-800 border border-zinc-700 flex items-center justify-center">
+            <svg class="w-5 h-5 text-neutral-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+              <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+            </svg>
+          </div>
+          <span class="text-neutral-400 text-[10px] font-medium text-center leading-tight">Ver Horários</span>
+        </button>
+        <button class="action-btn flex flex-col items-center gap-2" onclick="window.location='{{ route('aluno.minhas.notas') }}'">
+          <div class="w-12 h-12 rounded-2xl bg-zinc-800 border border-zinc-700 flex items-center justify-center">
+            <svg class="w-5 h-5 text-neutral-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+              <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+            </svg>
+          </div>
+          <span class="text-neutral-400 text-[10px] font-medium text-center leading-tight">Boletim</span>
+        </button>
+        <button class="action-btn flex flex-col items-center gap-2" onclick="window.location='{{ route('aluno.minhas.pagamentos') }}'">
+          <div class="w-12 h-12 rounded-2xl bg-zinc-800 border border-zinc-700 flex items-center justify-center">
+            <svg class="w-5 h-5 text-neutral-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+              <path d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+            </svg>
+          </div>
+          <span class="text-neutral-400 text-[10px] font-medium text-center leading-tight">Pagar Propina</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ── AULAS DE HOJE ── -->
+    <div class="bg-zinc-900 rounded-2xl border border-zinc-800 p-4">
+      <div class="flex items-center justify-between mb-3">
+        <p class="text-white text-sm font-semibold">Hoje · {{ $nomeDiaHoje }}</p>
+        <a href="{{ route('aluno.minhas.horario') }}" class="text-emerald-500 text-xs font-medium">Ver tudo</a>
+      </div>
+      @if($aulasHoje->count() > 0)
+      <div class="space-y-2">
+        @foreach($aulasHoje as $aula)
+        <div class="flex items-center gap-3 bg-black/30 rounded-xl p-3 border border-zinc-800/60">
+          <div class="flex-none w-10 text-center">
+            <p class="text-emerald-400 text-[11px] font-bold">{{ $aula->hora_inicio->format('H:i') }}</p>
+            <p class="text-neutral-600 text-[10px]">{{ $aula->hora_fim->format('H:i') }}</p>
+          </div>
+          <div class="w-px h-8 bg-emerald-500/30 flex-none"></div>
+          <div class="flex-1 min-w-0">
+            <p class="text-white text-xs font-semibold truncate">{{ $aula->disciplina }}</p>
+            <p class="text-neutral-500 text-[10px] truncate">@if($aula->professor){{ $aula->professor->name }} · @endif{{ $aula->sala ?? 'Sem sala' }} @if($aula->tempo)· {{ $aula->tempo }}º tempo @endif</p>
+          </div>
+          @if($loop->first)
+          <span class="bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 chip px-2 py-1 rounded-lg flex-none">Próxima</span>
+          @endif
+        </div>
+        @endforeach
+      </div>
+      @else
+      <div class="bg-black/30 rounded-xl p-4 border border-zinc-800/60 text-center">
+        <p class="text-neutral-500 text-xs">Sem aulas marcadas para hoje.</p>
+      </div>
+      @endif
+    </div>
+
+    <!-- ── ÚLTIMAS ACTUALIZAÇÕES ── -->
+    <div>
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="text-white text-sm font-semibold">Últimas Actualizações</h3>
+        <span class="text-emerald-500 text-xs font-medium">Histórico</span>
+      </div>
+      @if($atualizacoes->count() > 0)
+      <div class="space-y-2.5">
+        @foreach($atualizacoes as $item)
+        @php
+          $icone = match ($item->tipo) {
+              'nota' => '<path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>',
+              'pagamento' => '<path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>',
+              default => '<path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>',
+          };
+        @endphp
+        <div class="bg-zinc-900 rounded-xl border border-zinc-800 p-4 flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl {{ $item->icone_estilo }} flex items-center justify-center flex-none">
+            <svg class="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              {!! $icone !!}
+            </svg>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-white text-xs font-semibold truncate">{{ $item->titulo }}</p>
+            <p class="text-neutral-500 text-[10px] mt-0.5">{{ $item->subtitulo }}</p>
+          </div>
+          <div class="text-right flex-none">
+            <p class="{{ $item->valor_estilo }} text-xs font-bold">{{ $item->valor }}</p>
+            <p class="text-neutral-600 text-[10px] mt-0.5">{{ $item->tipo === 'aviso' ? 'Aviso escolar' : ($item->tipo === 'nota' ? 'em 20 valores' : '') }}</p>
+          </div>
+        </div>
+        @endforeach
+      </div>
+      @else
+      <div class="bg-zinc-900 rounded-xl border border-zinc-800 p-4 text-center">
+        <p class="text-neutral-500 text-xs">Ainda não há actualizações.</p>
+      </div>
+      @endif
+    </div>
+
+    <div class="h-6"></div>
+  </main>
+
+  <!-- ════════════ NAVEGAÇÃO INFERIOR ════════════ -->
+  <nav class="flex-none bg-black border-t border-zinc-800/80 bottom-safe">
+    <div class="grid grid-cols-5 py-2">
+      <button @click="nav='inicio'"
+              :class="nav==='inicio' ? 'text-emerald-400' : 'text-neutral-500'"
+              class="flex flex-col items-center gap-1 pt-1 transition-colors">
+        <div :class="nav==='inicio' ? 'nav-active' : ''">
+          <svg class="w-5 h-5 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+          </svg>
+        </div>
+        <span class="text-[9px] font-semibold">Início</span>
+      </button>
+
+      <button @click="nav='boletim'"
+              :class="nav==='boletim' ? 'text-emerald-400' : 'text-neutral-500'"
+              class="flex flex-col items-center gap-1 pt-1 transition-colors">
+        <div :class="nav==='boletim' ? 'nav-active' : ''">
+          <svg class="w-5 h-5 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+          </svg>
+        </div>
+        <span class="text-[9px] font-semibold">Boletim</span>
+      </button>
+
+      <button @click="nav='horarios'"
+              :class="nav==='horarios' ? 'text-emerald-400' : 'text-neutral-500'"
+              class="flex flex-col items-center gap-1 pt-1 transition-colors">
+        <div :class="nav==='horarios' ? 'nav-active' : ''">
+          <svg class="w-5 h-5 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+          </svg>
+        </div>
+        <span class="text-[9px] font-semibold">Horários</span>
+      </button>
+
+      <button @click="nav='financeiro'"
+              :class="nav==='financeiro' ? 'text-emerald-400' : 'text-neutral-500'"
+              class="flex flex-col items-center gap-1 pt-1 transition-colors">
+        <div :class="nav==='financeiro' ? 'nav-active' : ''">
+          <svg class="w-5 h-5 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+          </svg>
+        </div>
+        <span class="text-[9px] font-semibold">Financeiro</span>
+      </button>
+
+      <button @click="nav='menu'"
+              :class="nav==='menu' ? 'text-emerald-400' : 'text-neutral-500'"
+              class="flex flex-col items-center gap-1 pt-1 transition-colors">
+        <div :class="nav==='menu' ? 'nav-active' : ''">
+          <svg class="w-5 h-5 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path d="M4 6h16M4 12h16M4 18h16"/>
+          </svg>
+        </div>
+        <span class="text-[9px] font-semibold">Menu</span>
+      </button>
+    </div>
+  </nav>
+
+</div><!-- /#app-shell -->
+
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    });
+  }
+</script>
+</body>
+</html>

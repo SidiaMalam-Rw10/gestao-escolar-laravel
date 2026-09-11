@@ -11,11 +11,11 @@ class DonoSeeder extends Seeder
     public function run(): void
     {
         User::updateOrCreate(
-            ['username' => 'miscool'],
+            ['username' => 'noskola'],
             [
-                'name' => 'MiScool',
+                'name' => 'No Skola',
                 'role' => 'proprietario',
-                'password' => Hash::make('miscool123'),
+                'password' => Hash::make('noskola123'),
                 'is_active' => true,
             ]
         );

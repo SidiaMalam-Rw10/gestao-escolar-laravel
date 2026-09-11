@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Novo utilizador da plataforma')
-@section('page-title', 'Painel MiScool — Novo Utilizador')
+@section('page-title', 'Painel ' . \App\Models\Configuracao::plataformaNome() . ' — Novo Utilizador')
 
 @section('content')
 <style>
@@ -58,7 +58,7 @@
                 <label class="form-label">Nome de utilizador <span class="required">*</span></label>
                 <div class="input-icon">
                     <i class="fas fa-at"></i>
-                    <input type="text" name="username" value="{{ old('username') }}" class="form-input @error('username') is-invalid @enderror" required maxlength="50" placeholder="ex.: suporte.miscool">
+                    <input type="text" name="username" value="{{ old('username') }}" class="form-input @error('username') is-invalid @enderror" required maxlength="50" placeholder="ex.: suporte.noskola">
                 </div>
                 @error('username')<div class="form-error">{{ $message }}</div>@enderror
             </div>
@@ -67,7 +67,7 @@
                 <label class="form-label">Email</label>
                 <div class="input-icon">
                     <i class="fas fa-envelope"></i>
-                    <input type="email" name="email" value="{{ old('email') }}" class="form-input @error('email') is-invalid @enderror" maxlength="150" placeholder="ex.: suporte@miscool.ao">
+                    <input type="email" name="email" value="{{ old('email') }}" class="form-input @error('email') is-invalid @enderror" maxlength="150" placeholder="ex.: suporte@noskola.com">
                 </div>
                 @error('email')<div class="form-error">{{ $message }}</div>@enderror
             </div>
@@ -108,9 +108,9 @@
             <div class="form-group">
                 <label class="checkbox-group" style="gap:8px">
                     <input type="checkbox" name="is_active" value="1" checked>
-                    <span>Conta ativa (pode iniciar sessão no Painel MiScool)</span>
+                    <span>Conta ativa (pode iniciar sessão no Painel No Skola)</span>
                 </label>
-                <div class="form-hint">Todos os utilizadores da plataforma têm perfil de Proprietário da MiScool: veem as escolas registadas e podem adicionar novas escolas — nunca a gestão escolar de uma escola em particular.</div>
+                <div class="form-hint">Todos os utilizadores da plataforma têm perfil de Proprietário da No Skola: veem as escolas registadas e podem adicionar novas escolas — nunca a gestão escolar de uma escola em particular.</div>
             </div>
         </div>
 

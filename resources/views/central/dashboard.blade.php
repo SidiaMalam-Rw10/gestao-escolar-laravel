@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-@section('title', 'Painel MiScool')
-@section('page-title', 'Painel MiScool — Visão geral')
+@section('title', 'Painel ' . \App\Models\Configuracao::plataformaNome())
+@section('page-title', 'Painel ' . \App\Models\Configuracao::plataformaNome() . ' — Visão geral')
 
 @section('content')
 <style>
@@ -50,7 +50,7 @@
     <div class="welcome-content">
         <div class="date-header">{{ strtoupper(\Carbon\Carbon::now()->locale('pt')->isoFormat('dddd, D [de] MMMM [de] YYYY')) }}</div>
         <h1 class="welcome-title">Olá, {{ explode(' ', auth()->user()->name)[0] }}</h1>
-        <p class="welcome-subtitle">Aqui está a visão geral da plataforma MiScool.</p>
+        <p class="welcome-subtitle">Aqui está a visão geral da plataforma {{ \App\Models\Configuracao::plataformaNome() }}.</p>
     </div>
 </div>
 

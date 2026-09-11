@@ -1,10 +1,10 @@
 /**
- * Service Worker — MiScool PWA
+ * Service Worker — No Skola PWA
  * Precache básico do login + cache de estáticos. NUNCA cacheia páginas
  * autenticadas (evita vazamento de dados entre utilizações).
  */
 
-const VERSION = 'miscool-v1';
+const VERSION = 'noskola-v1';
 const STATIC_CACHE = VERSION + '-static';
 const SHELL_CACHE = VERSION + '-shell';
 const PRECACHE = [
@@ -32,7 +32,7 @@ self.addEventListener('activate', (event) => {
             .then((keys) =>
                 Promise.all(
                     keys
-                        .filter((k) => k.startsWith('miscool-') && k !== STATIC_CACHE && k !== SHELL_CACHE)
+                        .filter((k) => k.startsWith('noskola-') && k !== STATIC_CACHE && k !== SHELL_CACHE)
                         .map((k) => caches.delete(k))
                 )
             )

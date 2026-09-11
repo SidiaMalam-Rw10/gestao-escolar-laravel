@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Escolas')
-@section('page-title', 'Painel MiScool — Escolas')
+@section('page-title', 'Painel ' . \App\Models\Configuracao::plataformaNome() . ' — Escolas')
 
 @section('content')
 <style>
@@ -28,6 +28,8 @@
     .btn-icon{width:30px;height:30px;border-radius:6px;border:1px solid var(--border-color);background:var(--bg-card);color:var(--text-secondary);display:grid;place-items:center;cursor:pointer;transition:all .15s;text-decoration:none;font-size:12px}
     .btn-icon:hover{border-color:rgba(255,255,255,.15);color:var(--text-primary);background:var(--bg-hover)}
     .btn-icon.danger:hover{border-color:rgba(239,68,68,.3);color:#FCA5A5;background:rgba(239,68,68,.08)}
+    .btn-icon.warn:hover{border-color:rgba(251,191,36,.3);color:#FCD34D;background:rgba(251,191,36,.08)}
+    .btn-icon.success:hover{border-color:rgba(34,197,94,.3);color:var(--accent-green);background:rgba(34,197,94,.08)}
     .alert-success{padding:12px 16px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);color:var(--accent-green);border-radius:8px;margin-bottom:20px;font-size:13px;display:flex;align-items:center;gap:8px}
     .actions{display:flex;gap:6px;align-items:center}
     @media(max-width:768px){.table{display:block;overflow-x:auto}}
@@ -79,6 +81,12 @@
                             <div class="actions" style="justify-content:flex-end">
                                 <a href="{{ $urlEscola }}" target="_blank" class="btn-icon" title="Abrir a aplicação desta escola"><i class="fas fa-external-link-alt"></i></a>
                                 <a href="{{ route('central.escolas.edit', $escola) }}" class="btn-icon" title="Editar"><i class="fas fa-edit"></i></a>
+                                <form method="POST" action="{{ route('central.escolas.toggle', $escola) }}">
+                                    @csrf
+                                    <button type="submit" class="btn-icon {{ $escola->ativa ? 'warn' : 'success' }}" title="{{ $escola->ativa ? 'Desativar' : 'Reativar' }}">
+                                        <i class="fas {{ $escola->ativa ? 'fa-eye-slash' : 'fa-eye' }}"></i>
+                                    </button>
+                                </form>
                                 <form method="POST" action="{{ route('central.escolas.destroy', $escola) }}" onsubmit="return confirm('Eliminar a escola «{{ $escola->nome }}» e a sua base de dados «{{ $escola->nome_bd }}»? Esta ação é irreversível.');">
                                     @csrf
                                     @method('DELETE')

@@ -11,7 +11,7 @@ class CentralConfiguracaoController extends Controller
     public function index()
     {
         $valores = [
-            'nome' => Configuracao::obter('plataforma.nome', 'MiScool — Gestão Escolar'),
+            'nome' => Configuracao::plataformaNome(),
             'email' => Configuracao::obter('plataforma.email', ''),
             'telefone' => Configuracao::obter('plataforma.telefone', ''),
             'endereco' => Configuracao::obter('plataforma.endereco', ''),

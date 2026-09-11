@@ -85,6 +85,7 @@ class FinanceiroController extends Controller
         $validated = $request->validate([
             'aluno_id' => 'required|exists:users,id',
             'mes' => 'required|integer|between:1,12',
+            'quantidade_meses' => 'required|integer|between:1,12',
             'ano' => 'required|integer|min:2020|max:2030',
             'valor' => 'required|numeric|min:0',
             'data_pagamento' => 'required|date',
@@ -93,11 +94,27 @@ class FinanceiroController extends Controller
             'enviar_notificacao' => 'nullable|boolean',
         ]);
 
+        if ((int) $validated['quantidade_meses'] < 1 || (int) $validated['quantidade_meses'] > 12) {
+            return back()
+                ->withErrors(['quantidade_meses' => 'O número de meses a pagar deve estar entre 1 e 12.'])
+                ->withInput();
+        }
+
         $aluno = User::alunos()->with('encarregado')->findOrFail($validated['aluno_id']);
+
+        $quantidade = (int) $validated['quantidade_meses'];
+        $mesIni = (int) $validated['mes'];
+
+        $offsetFim = $mesIni - 1 + $quantidade - 1;
+        $mesFim = $offsetFim % 12 + 1;
+        $anoFim = (int) $validated['ano'] + intdiv($offsetFim, 12);
 
         $pagamento = Pagamento::create([
             'aluno_id' => $aluno->id,
-            'mes' => $validated['mes'],
+            'mes' => $mesIni,
+            'quantidade_meses' => $quantidade,
+            'mes_fim' => $mesFim,
+            'ano_fim' => $anoFim,
             'ano' => $validated['ano'],
             'valor' => $validated['valor'],
             'data_pagamento' => $validated['data_pagamento'],
@@ -108,7 +125,7 @@ class FinanceiroController extends Controller
         ]);
 
         $pagamento->update([
-            'recibo_numero' => 'REC-' . $validated['ano'] . '-' . str_pad($validated['mes'], 2, '0', STR_PAD_LEFT) . '-' . str_pad($pagamento->id, 4, '0', STR_PAD_LEFT),
+            'recibo_numero' => 'REC-' . $validated['ano'] . '-' . str_pad($mesIni, 2, '0', STR_PAD_LEFT) . '-' . str_pad($pagamento->id, 4, '0', STR_PAD_LEFT),
         ]);
         $pagamento->refresh();
 
@@ -116,9 +133,15 @@ class FinanceiroController extends Controller
             $this->notificarEncarregado($aluno, $pagamento);
         }
 
-        Atividade::registar('create', "Registou o pagamento de {$aluno->name} ({$this->MESES[$validated['mes']]}/{$validated['ano']}, " . number_format($validated['valor'], 2, ',', ' ') . " Xof) - recibo {$pagamento->recibo_numero}", null, Pagamento::class, $pagamento->id, ['mes' => $validated['mes'], 'ano' => $validated['ano'], 'valor' => $validated['valor'], 'metodo' => $validated['metodo_pagamento'], 'notificacao' => $request->boolean('enviar_notificacao')]);
+        $nomesMeses = collect($pagamento->meses_array)->map(fn ($m) => self::MESES[$m['mes']] . '/' . $m['ano'])->join(', ');
 
-        session()->flash('success', 'Pagamento registado com sucesso! Recibo gerado.');
+        Atividade::registar('create', "Registou o pagamento de {$aluno->name} ({$nomesMeses}, " . number_format($validated['valor'], 2, ',', ' ') . " Xof) - recibo {$pagamento->recibo_numero}", null, Pagamento::class, $pagamento->id, ['meses' => $pagamento->meses_array, 'valor' => $validated['valor'], 'metodo' => $validated['metodo_pagamento'], 'notificacao' => $request->boolean('enviar_notificacao')]);
+
+        $resumo = $quantidade > 1
+            ? "Pagamento registado com sucesso para {$quantidade} meses ({$nomesMeses})! Recibo gerado."
+            : 'Pagamento registado com sucesso! Recibo gerado.';
+
+        session()->flash('success', $resumo);
 
         return redirect()->route('financeiro.pagamentos.recibo', $pagamento);
     }
@@ -230,9 +253,11 @@ class FinanceiroController extends Controller
     {
         $encarregadoUser = $aluno->encarregado->user;
 
+        $nomesMeses = collect($pagamento->meses_array)->map(fn ($m) => self::MESES[$m['mes']] . '/' . $m['ano'])->join(', ');
+
         Aviso::create([
-            'titulo' => 'Pagamento registado · ' . self::MESES[$pagamento->mes] . '/' . $pagamento->ano,
-            'mensagem' => 'Recebemos o pagamento de ' . number_format((float) $pagamento->valor, 2, ',', ' ') . ' Xof relativo ao mês de ' . self::MESES[$pagamento->mes] . ' de ' . $pagamento->ano . ' do aluno ' . $aluno->name . '. Recibo: ' . ($pagamento->recibo_numero ?? ''),
+            'titulo' => 'Pagamento registado · ' . $nomesMeses,
+            'mensagem' => 'Recebemos o pagamento de ' . number_format((float) $pagamento->valor, 2, ',', ' ') . ' Xof relativo ao(s) mês(es) de ' . $nomesMeses . ' do aluno ' . $aluno->name . '. Recibo: ' . ($pagamento->recibo_numero ?? ''),
             'remetente_id' => auth()->id(),
             'destinatario_tipo' => 'individual',
             'destinatario_id' => $encarregadoUser->id,

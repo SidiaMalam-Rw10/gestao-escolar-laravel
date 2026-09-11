@@ -791,33 +791,33 @@
 </div>
 @endif
 
-@if(auth()->user()->isEncarregado())
+<!--@if(auth()->user()->isEncarregado())-->
 <!-- Dashboard do Encarregado = Centro de Alertas -->
-@if(isset($filhos) && $filhos->count() > 0)
+<!--@if(isset($filhos) && $filhos->count() > 0)
 <div class="metrics-grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 24px;">
     <div class="card">
         <div class="card-header">Filhos a acompanhar</div>
         <div class="card-value" style="color: var(--accent-green);">{{ $filhos->count() }}</div>
         <div class="card-icon" style="color: var(--accent-green);"><i class="fas fa-child"></i></div>
     </div>
-    <!--<div class="card">
+    <div class="card">
         <div class="card-header">Avisos não lidos</div>
         <div class="card-value" style="color: {{ $avisosNaoLidos > 0 ? '#FCD34D' : 'var(--text-secondary)' }};">{{ $avisosNaoLidos }}</div>
         <div class="card-icon" style="color: #FCD34D;"><i class="fas fa-bell"></i></div>
-    </div>-->
-    <!--<div class="card">
+    </div>
+    <div class="card">
         <div class="card-header">Faltas este ano</div>
         <div class="card-value" style="color: {{ $totalFaltasAno > 0 ? '#FB923C' : 'var(--text-primary)' }};">{{ $totalFaltasAno }}</div>
         <div class="card-icon" style="color: #FB923C;"><i class="fas fa-user-times"></i></div>
-    </div>-->
+    </div>
     <div class="card">
         <div class="card-header">Em dívida ({{ date('Y') }})</div>
         <div class="card-value" style="color: {{ $dividaTotal > 0 ? '#FCA5A5' : 'var(--text-primary)' }};">{{ number_format($dividaTotal, 0, ',', ' ') }} Xof</div>
         <div class="card-icon" style="color: #FCA5A5;"><i class="fas fa-money-bill-wave"></i></div>
     </div>
-</div>
+</div>-->
 
-<div class="grid-2col" style="margin-bottom: 24px;">
+<!--<div class="grid-2col" style="margin-bottom: 24px;">-->
     <!-- Alertas de Faltas -->
     <!--<div class="card">
         <div class="card-section-header">
@@ -847,7 +847,7 @@
     </div>-->
 
     <!-- Alertas de Pagamentos -->
-    <div class="card">
+    <!--<div class="card">
         <div class="card-section-header">
             <div class="card-section-title">
                 <i class="fas fa-money-bill-wave" style="color: #FCA5A5;"></i>
@@ -872,14 +872,14 @@
         @else
         <div class="empty-state"><i class="fas fa-check-circle" style="color:var(--accent-green);margin-bottom:8px;display:block"></i>Sem dívidas registadas.</div>
         @endif
-    </div>
-</div>
-@else
+    </div>-->
+<!--</div>-->
+<!--@else
 <div class="empty-state" style="border:1px solid var(--border-color);border-radius:10px;margin-bottom:24px;background:var(--bg-card)">
     <i class="fas fa-child"></i>
     <p>Nenhum aluno está associado à sua conta. Contacte a escola para associar os seus filhos.</p>
 </div>
 @endif
-@endif
+@endif-->
 
 @endsection
